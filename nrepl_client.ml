@@ -6,6 +6,21 @@
 
 open Printf
 
+type repl = {
+  ns          : string;
+  debug       : bool;
+  current_exp : string option;
+}
+
+let initial_repl = {
+  ns          = "user";
+  debug       = false;
+  current_exp = None;
+}
+
+let prompt_of repl = String.concat "" [repl.ns; ">> "]
+
+
 (*************************************************************************
  * main() and friends
  * ***********************************************************************)
@@ -31,8 +46,9 @@ let handle str =
 
 let _ =
   try
+    let repl = initial_repl in
     while true do
-      let str = readline "nrepl> " in
+      let str = readline (prompt_of repl) in
       handle str;
     done;
     flush stdout;
