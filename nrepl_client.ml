@@ -10,19 +10,63 @@ type repl = {
   ns          : string;
   debug       : bool;
   current_exp : string option;
+  host        : string;
+  port        : string;
 }
 
 type env = {
   mutable repl: repl;
 }
 
+type repl_message = {
+  id: string;
+  code: string;
+}
+
 let initial_repl = {
   ns          = "user";
   debug       = false;
   current_exp = None;
+  host        = "localhost";
+  port        = "8080"
 }
 
-let prompt_of repl = String.concat "" [repl.ns; ">> "]
+(* repl stuff *)
+
+let prompt_of repl = repl.ns ^ ">> "
+
+let replid repl = repl.host ^ ":" ^ repl.port
+
+let inspect ary = "[" ^ (String.concat ", " ary) ^ "]"
+
+(*************************************************************************
+ * nrepl commands
+ * ***********************************************************************)
+
+let nrepl_send repl message =
+  printf "-> %s\n" (inspect message);
+  flush stdout
+
+let clj_string repl exp =
+  let s = sprintf "(do (in-ns '%s) %s)" repl.ns exp in
+  Str.global_replace (Str.regexp "\"") "\\\"" s
+
+let q str =
+  sprintf "\"%s\"\n" str
+
+let clj_message_packet msg =
+  ["2"; q "id"; q msg.id; q "code"; q msg.code]
+
+let clj_eval_message repl exp =
+  { id = (replid repl) ^ "-repl"; code = exp }
+
+let clj_dispatch_message repl exp =
+  { id = replid repl; code = sprintf "(jark.ns/dispatch %s)" exp }
+
+let clj_eval repl code =
+  let expr = clj_string repl code in
+  nrepl_send repl (clj_message_packet (clj_eval_message repl expr))
+
 
 (*************************************************************************
  * internal commands
@@ -70,7 +114,7 @@ let bad_command () =
   flush stdout
 
 let send_cmd repl str =
-  printf "--> %s\n" str;
+  clj_eval repl  str;
   flush stdout;
   repl
 
