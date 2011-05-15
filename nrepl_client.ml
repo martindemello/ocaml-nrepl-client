@@ -4,6 +4,9 @@
  *   str.cma
  *************************************************************************)
 
+module B = Batteries_uni
+module S = B.String
+module Json = Yojson.Basic
 open Printf
 
 type repl = {
@@ -19,8 +22,16 @@ type env = {
 }
 
 type repl_message = {
-  id: string;
+  mid: string;
   code: string;
+}
+
+type response = {
+  mutable id     : string option;
+  mutable out    : string option;
+  mutable err    : string option;
+  mutable value  : string option;
+  mutable status : string option;
 }
 
 let initial_repl = {
@@ -31,13 +42,37 @@ let initial_repl = {
   port        = "8080"
 }
 
+let empty_response = {
+  id     = None;
+  out    = None;
+  err    = None;
+  value  = None;
+  status = None;
+}
+
 (* repl stuff *)
 
 let prompt_of repl = repl.ns ^ ">> "
 
 let replid repl = repl.host ^ ":" ^ repl.port
 
-let inspect ary = "[" ^ (String.concat ", " ary) ^ "]"
+(* utility functions *)
+
+let inspect ary = "[" ^ (S.concat ", " ary) ^ "]"
+
+let split x y = Str.split (Str.regexp x) y
+
+let lines x = split "\n" x
+
+let q str = sprintf "\"%s\"\n" str
+
+let uq str = S.strip ~chars:"\"" str
+
+let unsome default = function
+  | None -> default
+  | Some v -> v
+
+let us x = unsome "" x
 
 (*************************************************************************
  * nrepl commands
@@ -51,21 +86,49 @@ let clj_string repl exp =
   let s = sprintf "(do (in-ns '%s) %s)" repl.ns exp in
   Str.global_replace (Str.regexp "\"") "\\\"" s
 
-let q str =
-  sprintf "\"%s\"\n" str
-
 let clj_message_packet msg =
-  ["2"; q "id"; q msg.id; q "code"; q msg.code]
+  ["2"; q "id"; q msg.mid; q "code"; q msg.code]
 
 let clj_eval_message repl exp =
-  { id = (replid repl) ^ "-repl"; code = exp }
+  { mid = (replid repl) ^ "-repl"; code = exp }
 
 let clj_dispatch_message repl exp =
-  { id = replid repl; code = sprintf "(jark.ns/dispatch %s)" exp }
+  { mid = replid repl; code = sprintf "(jark.ns/dispatch %s)" exp }
 
 let clj_eval repl code =
   let expr = clj_string repl code in
   nrepl_send repl (clj_message_packet (clj_eval_message repl expr))
+
+(* response handling *)
+
+let pairs lst =
+  let rec _pairs a acc =
+    match a with
+    | [] -> acc
+    | [x] -> acc (* TODO: raise malformed response *)
+    | [x; y] -> (x, y) :: acc
+    | x :: y :: xs -> _pairs xs ((x, y) :: acc)
+  in
+  List.rev (_pairs lst [])
+
+let response_of_tuples tuples =
+  let res = empty_response in
+  let update_res (x, y) =
+    let y = Some y in
+    match x with
+    | "id"     -> res.id <- y;
+    | "out"    -> res.out <- y;
+    | "err"    -> res.err <- y;
+    | "value"  -> res.value <- y;
+    | "status" -> res.status <- y;
+    | _        -> (); (* TODO: raise malformed response *)
+  in
+  List.iter update_res tuples
+
+let responses_of_msg msg =
+  let msgs = List.map lines (split "\b3\n" msg) in
+  List.map (fun x -> response_of_tuples (pairs x)) msgs
+
 
 
 (*************************************************************************
@@ -119,9 +182,9 @@ let send_cmd repl str =
   repl
 
 let handle repl str =
-  if String.length str == 0 then
+  if S.length str == 0 then
     repl
-  else if str.[0] == '/' then
+  else if S.starts_with str "/" then
     handle_cmd repl str
   else
     send_cmd repl str
