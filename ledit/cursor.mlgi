@@ -1,0 +1,17 @@
+type 'a t = {
+  mutable before : 'a list;
+  mutable current : 'a option;
+  mutable after : 'a list;
+}
+exception Failure
+val create : unit -> 'a t
+val before : 'a t -> unit
+val after : 'a t -> unit
+val is_last_line : 'a t -> bool
+val insert : 'a t -> 'a -> unit
+val insert_last : 'a t -> 'a -> unit
+val peek : 'a t -> 'a
+val peek_last : 'a t -> 'a
+val goto_first : 'a t -> unit
+val goto_last : 'a t -> unit
+val get_all : 'a t -> 'a list

@@ -1,0 +1,171 @@
+type encoding = Ascii | Iso_8859 | Utf_8
+module A :
+  sig
+    val encoding : encoding ref
+    module Char :
+      sig
+        type t
+        val of_ascii : char -> t
+        val to_ascii : t -> char option
+        val is_word_char : t -> bool
+        val ctrl_val : t -> t option
+        val meta_ctrl_val : t -> t option
+        val not_ascii_val : t -> (t * t * t) option
+        val uppercase : t -> t
+        val lowercase : t -> t
+        val to_string : t -> string
+        val input : in_channel -> t
+        val read : unit -> t
+        val print : t -> unit
+        val prerr : t -> unit
+        val prerr_backsp : t -> unit
+      end
+    module String :
+      sig
+        type t
+        val empty : t
+        val of_char : Char.t -> t
+        val of_ascii : string -> t
+        val length : t -> int
+        val set : t -> int -> Char.t -> unit
+        val get : t -> int -> Char.t
+        val sub : t -> int -> int -> t
+        val concat : t -> t -> t
+        val input_line : in_channel -> t
+        val output : out_channel -> t -> unit
+      end
+  end
+val max_len : int ref
+val set_max_len : int -> unit
+val son : int option ref
+val set_son_pid : int -> unit
+type command =
+    Abort
+  | Accept_line
+  | Backward_char
+  | Backward_delete_char
+  | Backward_kill_word
+  | Backward_word
+  | Beginning_of_history
+  | Beginning_of_line
+  | Capitalize_word
+  | Delete_char
+  | Delete_char_or_end_of_file
+  | Downcase_word
+  | End_of_history
+  | End_of_line
+  | Expand_abbrev
+  | Forward_char
+  | Forward_word
+  | Interrupt
+  | Kill_line
+  | Kill_word
+  | Next_history
+  | Operate_and_get_next
+  | Previous_history
+  | Quit
+  | Quoted_insert
+  | Refresh_line
+  | Reverse_search_history
+  | Self_insert
+  | Start_csi_sequence of string
+  | Start_escape_sequence
+  | Start_o_sequence
+  | Suspend
+  | Transpose_chars
+  | Unix_line_discard
+  | Upcase_word
+  | Yank
+type istate = Normal | Quote | Escape | CSI of string | Oseq
+val command_of_char : A.Char.t -> command
+val set_char_command : char -> command -> unit
+val escape_command_of_char : A.Char.t -> command
+val set_escape_command : char -> command -> unit
+val csi_command_of_char : string -> A.Char.t -> command
+val set_csi_command : string -> char -> command -> unit
+val o_command_of_char : A.Char.t -> command
+val set_o_command : char -> command -> unit
+val meta_as_escape : bool ref
+val unset_meta_as_escape : unit -> unit
+val set_utf8 : unit -> unit
+val set_ascii : unit -> unit
+val init_commands : unit -> unit
+type line = {
+  mutable buf : A.String.t;
+  mutable cur : int;
+  mutable len : int;
+}
+type abbrev_data = {
+  hist : A.String.t list;
+  rpos : int;
+  clen : int;
+  abbr : A.String.t;
+  found : A.String.t list;
+}
+type state = {
+  od : line;
+  nd : line;
+  line : line;
+  mutable last_line : A.String.t;
+  mutable istate : istate;
+  mutable shift : int;
+  mutable cut : A.String.t;
+  mutable last_comm : command;
+  mutable histfile : out_channel option;
+  mutable history : A.String.t Cursor.t;
+  mutable abbrev : abbrev_data option;
+}
+val put_bs : 'a -> A.Char.t -> unit
+val put_space : 'a -> unit
+val put_newline : 'a -> unit
+val flush_out : 'a -> unit
+val bell : unit -> unit
+val saved_tcio : Unix.terminal_io
+val edit_tcio : Unix.terminal_io option ref
+val set_edit : unit -> unit
+val unset_edit : unit -> unit
+val line_set_nth_char : line -> int -> A.Char.t -> unit
+val line_to_nd : state -> unit
+val display : state -> unit
+val update_output : state -> unit
+val balance_paren : state -> A.Char.t -> unit
+val delete_char : state -> unit
+val insert_char : state -> A.Char.t -> unit
+val move_in_word :
+  A.String.t ->
+  (int -> bool) ->
+  ((int -> int) -> int -> int) -> ((int -> int) -> int -> int) -> int -> int
+val forward_move :
+  line ->
+  ((int -> int) -> int -> int) -> ((int -> int) -> int -> int) -> int -> int
+val backward_move :
+  line ->
+  ((int -> int) -> int -> int) -> ((int -> int) -> int -> int) -> int -> int
+val forward_word : line -> int
+val backward_word : line -> int
+val get_word_len : state -> int
+val kill_word : state -> int
+val backward_kill_word : state -> int
+val capitalize_word : state -> int
+val upcase_word : state -> int
+val downcase_word : state -> int
+val transpose_chars : state -> unit
+val set_line : state -> A.String.t -> unit
+val save_if_last : state -> unit
+val previous_history : state -> unit
+val next_history : state -> unit
+val reverse_search_history : state -> unit
+val beginning_of_history : state -> unit
+val end_of_history : state -> unit
+val back_search : state -> abbrev_data -> A.String.t list -> int -> unit
+val expand_abbrev : state -> abbrev_data option -> unit
+val update_line : state -> command -> A.Char.t -> unit
+val save_history : state -> A.String.t -> unit
+val trace_sequences : bool ref
+val edit_line : unit -> A.String.t
+val open_histfile : bool -> string -> unit
+val close_histfile : unit -> unit
+val set_prompt : string -> unit
+val get_prompt : unit -> string
+val input_a_char : in_channel -> A.Char.t
+val input_char : in_channel -> string
