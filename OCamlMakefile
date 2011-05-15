@@ -1,6 +1,6 @@
 ###########################################################################
 #                              OCamlMakefile
-#                  Copyright (C) 1999-2007  Markus Mottl
+#                  Copyright (C) 1999-  Markus Mottl
 #
 #                             For updates see:
 #                http://www.ocaml.info/home/ocaml_sources.html
@@ -28,7 +28,6 @@ endif
 export RESULT := $(strip $(RESULT))
 
 export LIB_PACK_NAME
-export PACKS
 
 ifndef DOC_FILES
   DOC_FILES := $(filter %.mli, $(SOURCES))
@@ -113,10 +112,31 @@ endif
 
 ####################  variables depending on your OCaml-installation
 
+SYSTEM := $(shell ocamlc -config 2>/dev/null | grep system | sed 's/system: //')
+    # This may be
+    # - mingw
+    # - win32
+    # - cygwin
+    # - some other string means Unix
+    # - empty means ocamlc does not support -config
+
+ifeq ($(SYSTEM),mingw)
+  MINGW=1
+endif
+ifeq ($(SYSTEM),win32)
+  MSVC=1
+endif
+
 ifdef MINGW
   export MINGW
-  WIN32   := 1
+  WIN32 := 1
+  # We are compiling with cygwin tools:
   CFLAGS_WIN32 := -mno-cygwin
+  # The default value 'cc' makes 'ocamlc -cc "cc"' raises the error 'The
+  # NTVDM CPU has encountered an illegal instruction'.
+  CC := gcc
+  # The OCaml C header files use this flag:
+  CFLAGS += -D__MINGW32__
 endif
 ifdef MSVC
   export MSVC
@@ -482,7 +502,7 @@ ifneq ($(strip $(OBJ_LINK)),)
 endif
 
 ifdef WIN32
-DLLSONAME := $(CLIB_BASE).dll
+DLLSONAME := dll$(CLIB_BASE).dll
 else
 DLLSONAME := dll$(CLIB_BASE).so
 endif
@@ -490,9 +510,10 @@ endif
 NONEXECS     := $(INTF) $(IMPL_CMO) $(IMPL_CMX) $(IMPL_ASM) $(IMPL_S) \
 		$(OBJ_FILES) $(PRE_TARGETS) $(BCRESULT).cma $(NCRESULT).cmxa \
 		$(NCRESULT).$(EXT_LIB) $(BCRESULT).cmi $(BCRESULT).cmo \
-		$(NCRESULT).cmi $(NCRESULT).cmx $(NCRESULT).o \
+		$(NCRESULT).cmi $(NCRESULT).cmx $(NCRESULT).$(EXT_OBJ) \
 		$(RES_CLIB) $(IMPL_CMO:.cmo=.annot) \
-		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmo $(LIB_PACK_NAME).cmx $(LIB_PACK_NAME).o
+		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmo $(LIB_PACK_NAME).cmx \
+		$(LIB_PACK_NAME).$(EXT_OBJ)
 
 ifndef STATIC
   NONEXECS += $(DLLSONAME)
@@ -509,7 +530,6 @@ ifndef LIBINSTALL_FILES
 endif
 
 export LIBINSTALL_FILES
-export LIBINSTALL_META
 
 ifdef WIN32
   # some extra stuff is created while linking DLLs
@@ -590,6 +610,10 @@ else
   OBJS_LIBS := $(CLIBS_OPTS) $(MAYBE_IDL)
 endif
 
+ifdef LIB_PACK_NAME
+  FOR_PACK_NAME := $(shell echo $(LIB_PACK_NAME) | awk '{print toupper(substr($$0,1,1))substr($$0,2)}')
+endif
+
 # If we have to make byte-code
 ifndef REAL_OCAMLC
   BYTE_OCAML := y
@@ -600,7 +624,13 @@ ifndef REAL_OCAMLC
   # the path since I don't know the paths built into the compiler, so
   # just include the ones with slashes in their names.
   EXTRADEPS := $(addsuffix .cma,$(foreach i,$(LIBS),$(if $(findstring /,$(i)),$(i))))
-  SPECIAL_OCAMLFLAGS := $(OCAMLBCFLAGS)
+
+
+  ifndef LIB_PACK_NAME
+    SPECIAL_OCAMLFLAGS := $(OCAMLBCFLAGS)
+  else	
+    SPECIAL_OCAMLFLAGS := -for-pack $(FOR_PACK_NAME) $(OCAMLBCFLAGS)
+  endif
 
   REAL_OCAMLC := $(INTF_OCAMLC)
 
@@ -659,9 +689,8 @@ else
 
   ifndef LIB_PACK_NAME
     SPECIAL_OCAMLFLAGS := $(OCAMLNCFLAGS)
-  else
-    LIB_PACK_NAME_PROPER :=  $(shell echo "$(LIB_PACK_NAME)" | sed -re 's/^./\U&/')
-    SPECIAL_OCAMLFLAGS := -for-pack $(LIB_PACK_NAME_PROPER) $(OCAMLNCFLAGS)
+  else	
+    SPECIAL_OCAMLFLAGS := -for-pack $(FOR_PACK_NAME) $(OCAMLNCFLAGS)
   endif
   REAL_IMPL := $(IMPL_CMX)
   REAL_IMPL_INTF := $(IMPLX_INTF)
@@ -883,7 +912,7 @@ pabc:	pack-byte-code
 # packs native-code objects
 pack-native-code:		$(PRE_TARGETS)
 			$(QUIET)$(MAKE) -r -f $(OCAMLMAKEFILE) \
-				$(NCRESULT).cmx $(NCRESULT).o \
+				$(NCRESULT).cmx $(NCRESULT).$(EXT_OBJ) \
 				REAL_RESULT="$(NCRESULT)" \
 				REAL_OCAMLC="$(OCAMLOPT)" \
 				PACK_LIB=yes make_deps=yes
@@ -933,18 +962,30 @@ endif
 
 ifndef STATIC
 ifdef MINGW
+# From OCaml 3.11.0, ocamlmklib is available on windows
+OCAMLMLIB_EXISTS = $(shell which $(OCAMLMKLIB))
+ifeq ($(strip $(OCAMLMLIB_EXISTS)),)
 $(DLLSONAME):		$(OBJ_LINK)
 			$(CC) $(CFLAGS) $(CFLAGS_WIN32) $(OBJ_LINK) -shared -o $@ \
-			-Wl,--whole-archive $(wildcard $(foreach dir,$(LIBDIRS),$(CLIBS:%=$(dir)/lib%.a))) \
-			 $(OCAMLLIBPATH)/ocamlrun.a \
+			$(wildcard $(foreach dir,$(LIBDIRS),$(CLIBS:%=$(dir)/lib%.a))) \
+			 '$(OCAMLLIBPATH)/ocamlrun.a' \
+			-Wl,--whole-archive \
 			-Wl,--export-all-symbols \
-			-Wl,--no-whole-archive
+			-Wl,--allow-multiple-definition \
+			-Wl,--enable-auto-import
+else
+$(DLLSONAME):		$(OBJ_LINK)
+			$(OCAMLMKLIB) $(INCFLAGS) $(CLIBFLAGS) \
+				-o $(CLIB_BASE) $(OBJ_LINK) $(CLIBS:%=-l%) \
+				$(CFRAMEWORKS:%=-framework %) \
+				$(OCAMLMKLIB_FLAGS)
+endif
 else
 ifdef MSVC
 $(DLLSONAME):		$(OBJ_LINK)
 			link /NOLOGO /DLL /OUT:$@ $(OBJ_LINK) \
 			 $(wildcard $(foreach dir,$(LIBDIRS),$(CLIBS:%=$(dir)/%.lib))) \
-			 $(OCAMLLIBPATH)/ocamlrun.lib
+			 '$(OCAMLLIBPATH)/ocamlrun.lib'
 
 else
 $(DLLSONAME):		$(OBJ_LINK)
@@ -1016,20 +1057,12 @@ endif
 				-c $(ALL_OCAMLCFLAGS) $<; \
 			  $(REAL_OCAMLFIND) $(REAL_OCAMLC) $(OCAML_FIND_PACKAGES) \
 				-c $(ALL_OCAMLCFLAGS) $<; \
-	                  if [ -e "$<i" ]; then cp $<i $<gi; else $(REAL_OCAMLFIND) $(REAL_OCAMLC) $(OCAML_FIND_PACKAGES) -c $(ALL_OCAMLCFLAGS) -i $< > $<gi; fi; \
 			else \
 			  $(ECHO) $(REAL_OCAMLFIND) $(REAL_OCAMLC) $(OCAML_FIND_PACKAGES) \
 				-c -pp \"$$pp $(PPFLAGS)\" $(ALL_OCAMLCFLAGS) $<; \
 			  $(REAL_OCAMLFIND) $(REAL_OCAMLC) $(OCAML_FIND_PACKAGES) \
 				-c -pp "$$pp $(PPFLAGS)" $(ALL_OCAMLCFLAGS) $<; \
-                          if [ -e "$<i" ]; then cp $<i $<gi; else $(REAL_OCAMLFIND) $(REAL_OCAMLC) $(OCAML_FIND_PACKAGES) -c -pp "$$pp $(PPFLAGS)" $(ALL_OCAMLCFLAGS) -i $< > $<gi; fi; \
 			fi
-
-ifdef PACK_LIB
-$(REAL_RESULT).cmo $(REAL_RESULT).cmx $(REAL_RESULT).o: $(REAL_IMPL_INTF) $(OBJ_LINK) $(EXTRADEPS)
-			$(REAL_OCAMLFIND) $(REAL_OCAMLC) -pack $(ALL_LDFLAGS) \
-				$(OBJS_LIBS) -o $@ $(REAL_IMPL)
-endif
 
 .PRECIOUS:		%.ml
 %.ml:			%.mll
@@ -1177,32 +1210,23 @@ subprojs: $(SUBPROJS:%=subproj_%)
 # (UN)INSTALL RULES FOR LIBRARIES
 
 .PHONY: libinstall
-libinstall:
+libinstall:	all
 	$(QUIET)printf "\nInstalling library with ocamlfind\n"
-	rm -f META
-	ln -s $(LIBINSTALL_META) META
 	$(OCAMLFIND) install $(OCAMLFIND_INSTFLAGS) $(RESULT) META $(LIBINSTALL_FILES)
-	rm -f META
 	$(QUIET)printf "\nInstallation successful.\n"
 
 .PHONY: libinstall-byte-code
 libinstall-byte-code:	all
 	$(QUIET)printf "\nInstalling byte-code library with ocamlfind\n"
-	rm -f META
-	ln -s $(LIBINSTALL_META) META
 	$(OCAMLFIND) install $(OCAMLFIND_INSTFLAGS) $(RESULT) META \
 	  $(filter-out $(RESULT).$(EXT_LIB) $(RESULT).cmxa, $(LIBINSTALL_FILES))
-	rm -f META
 	$(QUIET)printf "\nInstallation successful.\n"
 
 .PHONY: libinstall-native-code
 libinstall-native-code:	all
 	$(QUIET)printf "\nInstalling native-code library with ocamlfind\n"
-	rm -f META
-	ln -s $(LIBINSTALL_META) META
 	$(OCAMLFIND) install $(OCAMLFIND_INSTFLAGS) $(RESULT) META \
 	  $(filter-out $(DLLSONAME) $(RESULT).cma, $(LIBINSTALL_FILES))
-	rm -f META
 	$(QUIET)printf "\nInstallation successful.\n"
 
 .PHONY: libuninstall
@@ -1234,7 +1258,6 @@ rawuninstall:
 .PHONY:	clean
 clean::
 	rm -f $(TARGETS) $(TRASH)
-	$(QUIET)rm -f *.mlgi
 	rm -rf $(BCDIDIR) $(NCDIDIR) $(MLDEPDIR)
 
 .PHONY:	cleanup
