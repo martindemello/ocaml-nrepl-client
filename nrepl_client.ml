@@ -1,8 +1,4 @@
 (*pp $PP *)
-(*************************************************************************
- * Requires:
- *   str.cma
- *************************************************************************)
 
 module B = Batteries_uni
 module S = B.String
@@ -63,6 +59,8 @@ let split x y = Str.split (Str.regexp x) y
 
 let lines x = split "\n" x
 
+let unlines xs = S.concat "\n" xs
+
 let q str = sprintf "\"%s\"" str
 
 let uq str = S.strip ~chars:"\"" str
@@ -96,9 +94,9 @@ type state = NewPacket | Receiving of int | Done
 let readlines socket =
   let input = Unix.in_channel_of_descr socket in
   let getline () = try input_line input with End_of_file -> "" in
-  let value = ref "" in
+  let value = ref None in
   let out = ref [] in
-  let err = ref "" in
+  let err = ref None in
   let rec get s res =
     match s with
     | NewPacket ->
@@ -106,12 +104,15 @@ let readlines socket =
         let i = int_of_string line in
         get (Receiving i) empty_response
     | Done ->
-        let out = S.concat "\n" (List.rev !out) in
-        {res with value = Some !value; out = Some out; err = Some !err}
+        let out = match !out with
+        | [] -> None
+        | _  -> Some (unlines (List.map us (List.rev !out)))
+        in
+        {res with value = !value; out = out; err = !err}
     | Receiving 0 ->
-        if notnone res.err then err := us res.err;
-        if notnone res.out then out := (us res.out) :: !out;
-        if notnone res.value then value := us res.value;
+        if notnone res.err then err := res.err;
+        if notnone res.out then out := res.out :: !out;
+        if notnone res.value then value := res.value;
         get NewPacket res
     | Receiving n ->
         let k = getline () in
@@ -139,11 +140,24 @@ let send_msg repl msg =
 (*************************************************************************
  * nrepl commands
  * ***********************************************************************)
+let strip_fake_newline str =
+  if S.ends_with str "\\n" then
+    S.rchop (S.rchop str)
+  else
+    str
+
+let format_value value =
+  strip_fake_newline value
 
 let nrepl_send repl msg =
   let res = send_msg repl (S.concat "\n" msg) in
-  printf "%s\n" (us res.out);
-  printf "-> %s\n" (us res.value);
+  if notnone res.err then
+    printf "%s\n" (format_value (us res.err))
+  else
+    begin
+      if notnone res.out then printf "%s\n" (us res.out);
+      if notnone res.value then printf "-> %s\n" (format_value (us res.value))
+    end;
   flush stdout
 
 let clj_string repl exp =
