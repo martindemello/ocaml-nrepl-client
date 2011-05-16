@@ -150,7 +150,7 @@ let format_value value =
   strip_fake_newline value
 
 let nrepl_send repl msg =
-  let res = send_msg repl (S.concat "\n" msg) in
+  let res = send_msg repl (unlines msg) in
   if notnone res.err then
     printf "%s\n" (format_value (us res.err))
   else
