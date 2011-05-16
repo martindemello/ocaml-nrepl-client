@@ -6,7 +6,6 @@
 
 module B = Batteries_uni
 module S = B.String
-module Json = Yojson.Basic
 open Printf
 
 type repl = {
@@ -14,7 +13,7 @@ type repl = {
   debug       : bool;
   current_exp : string option;
   host        : string;
-  port        : string;
+  port        : int;
 }
 
 type env = {
@@ -27,11 +26,11 @@ type repl_message = {
 }
 
 type response = {
-  mutable id     : string option;
-  mutable out    : string option;
-  mutable err    : string option;
-  mutable value  : string option;
-  mutable status : string option;
+  id     : string option;
+  out    : string option;
+  err    : string option;
+  value  : string option;
+  status : string option;
 }
 
 let initial_repl = {
@@ -39,7 +38,7 @@ let initial_repl = {
   debug       = false;
   current_exp = None;
   host        = "localhost";
-  port        = "8080"
+  port        = 9000
 }
 
 let empty_response = {
@@ -54,7 +53,7 @@ let empty_response = {
 
 let prompt_of repl = repl.ns ^ ">> "
 
-let replid repl = repl.host ^ ":" ^ repl.port
+let replid repl = sprintf "%s:%d" repl.host repl.port
 
 (* utility functions *)
 
@@ -64,7 +63,7 @@ let split x y = Str.split (Str.regexp x) y
 
 let lines x = split "\n" x
 
-let q str = sprintf "\"%s\"\n" str
+let q str = sprintf "\"%s\"" str
 
 let uq str = S.strip ~chars:"\"" str
 
@@ -72,14 +71,79 @@ let unsome default = function
   | None -> default
   | Some v -> v
 
+let notnone x = x != None
+
 let us x = unsome "" x
+
+let flush stdout = flush stdout
+
+let update_res res (x, y) =
+  let y = Some (uq y) in
+  match (uq x) with
+  | "id"     -> {res with id = y};
+  | "out"    -> {res with out = y};
+  | "err"    -> {res with err = y};
+  | "value"  -> {res with value = y};
+  | "status" -> {res with status = y};
+  | _        -> res (* TODO: raise malformed response *)
+
+(*************************************************************************
+ * message sending and receiving
+ * ***********************************************************************)
+
+type state = NewPacket | Receiving of int | Done
+
+let readlines socket =
+  let input = Unix.in_channel_of_descr socket in
+  let getline () = try input_line input with End_of_file -> "" in
+  let value = ref "" in
+  let out = ref [] in
+  let err = ref "" in
+  let rec get s res =
+    match s with
+    | NewPacket ->
+        let line = getline () in
+        let i = int_of_string line in
+        get (Receiving i) empty_response
+    | Done ->
+        let out = S.concat "\n" (List.rev !out) in
+        {res with value = Some !value; out = Some out; err = Some !err}
+    | Receiving 0 ->
+        if notnone res.err then err := us res.err;
+        if notnone res.out then out := (us res.out) :: !out;
+        if notnone res.value then value := us res.value;
+        get NewPacket res
+    | Receiving n ->
+        let k = getline () in
+        let v = getline () in
+        let res = update_res res (k, v) in
+        match res.status with
+        | Some "done"  -> get Done res
+        | _            -> get (Receiving (n - 1)) res
+  in
+  get NewPacket empty_response
+
+let write_all socket s =
+  Unix.send socket s 0 (S.length s) []
+
+let send_msg repl msg =
+  let socket = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+  let hostinfo = Unix.gethostbyname repl.host in
+  let server_address = hostinfo.Unix.h_addr_list.(0) in
+  let _ = Unix.connect socket (Unix.ADDR_INET (server_address, repl.port)) in
+  write_all socket msg;
+  let rv = readlines socket in
+  Unix.close socket;
+  rv
 
 (*************************************************************************
  * nrepl commands
  * ***********************************************************************)
 
-let nrepl_send repl message =
-  printf "-> %s\n" (inspect message);
+let nrepl_send repl msg =
+  let res = send_msg repl (S.concat "\n" msg) in
+  printf "%s\n" (us res.out);
+  printf "-> %s\n" (us res.value);
   flush stdout
 
 let clj_string repl exp =
@@ -98,37 +162,6 @@ let clj_dispatch_message repl exp =
 let clj_eval repl code =
   let expr = clj_string repl code in
   nrepl_send repl (clj_message_packet (clj_eval_message repl expr))
-
-(* response handling *)
-
-let pairs lst =
-  let rec _pairs a acc =
-    match a with
-    | [] -> acc
-    | [x] -> acc (* TODO: raise malformed response *)
-    | [x; y] -> (x, y) :: acc
-    | x :: y :: xs -> _pairs xs ((x, y) :: acc)
-  in
-  List.rev (_pairs lst [])
-
-let response_of_tuples tuples =
-  let res = empty_response in
-  let update_res (x, y) =
-    let y = Some y in
-    match x with
-    | "id"     -> res.id <- y;
-    | "out"    -> res.out <- y;
-    | "err"    -> res.err <- y;
-    | "value"  -> res.value <- y;
-    | "status" -> res.status <- y;
-    | _        -> (); (* TODO: raise malformed response *)
-  in
-  List.iter update_res tuples
-
-let responses_of_msg msg =
-  let msgs = List.map lines (split "\b3\n" msg) in
-  List.map (fun x -> response_of_tuples (pairs x)) msgs
-
 
 
 (*************************************************************************
@@ -162,6 +195,7 @@ let handle_cmd repl cmd =
  * ***********************************************************************)
 
 let readline prompt =
+  let stdin = stdin in
   Ledit.set_prompt prompt;
   let buf = Buffer.create 4096 in
   let rec loop c = match c with
@@ -177,7 +211,7 @@ let bad_command () =
   flush stdout
 
 let send_cmd repl str =
-  clj_eval repl  str;
+  clj_eval repl str;
   flush stdout;
   repl
 
