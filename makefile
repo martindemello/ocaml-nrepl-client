@@ -1,11 +1,11 @@
-RESULT = nrepl-client
+RESULT = jark
 
 SOURCES = \
 					ledit/cursor.ml \
 					ledit/ledit.mli ledit/ledit.ml \
-					nrepl_client.ml
+					src/nrepl_client.ml
 
-GODI = /home/martin/opt/godi/lib/ocaml
+GODI = /home/icylisper/share/ocaml/godi/lib/ocaml
 PKG = $(GODI)/pkg-lib
 PACKS = unix bigarray str pcre batteries
 INCDIRS = $(PKG)/batteries $(GODI)/std-lib/camlp5 $(PKG)/pcre
