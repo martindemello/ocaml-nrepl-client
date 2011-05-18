@@ -73,8 +73,6 @@ let notnone x = x != None
 
 let us x = unsome "" x
 
-let flush stdout = flush stdout
-
 let update_res res (x, y) =
   let y = Some (uq y) in
   match (uq x) with
