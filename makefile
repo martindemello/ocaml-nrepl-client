@@ -7,8 +7,8 @@ SOURCES = \
 
 GODI = /home/martin/opt/godi/lib/ocaml
 PKG = $(GODI)/pkg-lib
-PACKS = unix bigarray str mikmatch_pcre pcre batteries
-INCDIRS = $(PKG)/batteries $(GODI)/std-lib/camlp5 $(PKG)/pcre $(PKG)/mikmatch_pcre
+PACKS = unix bigarray str pcre batteries
+INCDIRS = $(PKG)/batteries $(GODI)/std-lib/camlp5 $(PKG)/pcre
 CREATE_LIB = yes
 PRE_TARGETS = ledit/pa_local.cmo ledit/pa_def.cmo
 USE_CAMLP4 = yes
