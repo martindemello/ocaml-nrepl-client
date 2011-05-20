@@ -6,10 +6,6 @@ type repl = {
   port        : int;
 }
 
-type env = {
-  mutable repl: repl;
-}
-
 type repl_message = {
   mid: string;
   code: string;

@@ -75,10 +75,10 @@ let handle repl str =
 
 let _ =
   try
-    let r = {repl = initial_repl} in
+    let r = ref initial_repl in
     while true do
-      let str = readline (prompt_of r.repl) in
-      r.repl <- handle r.repl str;
+      let str = readline (prompt_of !r) in
+      r := handle !r str;
     done;
     flush stdout;
   with End_of_file -> print_newline ();
