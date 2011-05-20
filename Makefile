@@ -3,7 +3,7 @@ RESULT = nrepl-client
 SOURCES = \
 					ledit/cursor.ml \
 					ledit/ledit.mli ledit/ledit.ml \
-					src/nrepl_client.ml
+					src/util.ml src/datatypes.ml src/nrepl_client.ml src/nrepl_frontend.ml src/repl.ml
 
 GODI = /home/martin/opt/godi/lib/ocaml
 PKG = $(GODI)/pkg-lib
