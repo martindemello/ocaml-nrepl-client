@@ -1,4 +1,4 @@
 module NreplClient :
   sig
-    val send_msg : Datatypes.repl -> string -> Datatypes.response
+    val send_msg : Datatypes.env -> string -> Datatypes.response
   end

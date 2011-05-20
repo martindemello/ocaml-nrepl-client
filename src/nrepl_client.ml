@@ -15,7 +15,7 @@ module NreplClient =
       status = None;
     }
 
-    let update_res res (x, y) =
+    let update_response res (x, y) =
       let y = Some (uq y) in
       match (uq x) with
       | "id"     -> {res with id = y};
@@ -53,7 +53,7 @@ module NreplClient =
         | Receiving n ->
             let k = getline () in
             let v = getline () in
-            let res = update_res res (k, v) in
+            let res = update_response res (k, v) in
             match res.status with
             | Some "done"  -> get Done res
             | _            -> get (Receiving (n - 1)) res
@@ -63,13 +63,13 @@ module NreplClient =
     let write_all socket s =
       Unix.send socket s 0 (S.length s) []
 
-    let send_msg repl msg =
+    let send_msg env msg =
       let socket = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
-      let hostinfo = Unix.gethostbyname repl.host in
+      let hostinfo = Unix.gethostbyname env.host in
       let server_address = hostinfo.Unix.h_addr_list.(0) in
-      let _ = Unix.connect socket (Unix.ADDR_INET (server_address, repl.port)) in
+      let _ = Unix.connect socket (Unix.ADDR_INET (server_address, env.port)) in
       write_all socket msg;
-      let rv = readlines socket in
+      let res = readlines socket in
       Unix.close socket;
-      rv
+      res
   end

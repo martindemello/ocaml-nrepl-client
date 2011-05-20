@@ -8,6 +8,7 @@ module Nrepl =
   struct
     open Datatypes
 
+    (* nrepl seems to be appending a literal '\n' *)
     let strip_fake_newline str =
       if S.ends_with str "\\n" then
         S.rchop (S.rchop str)
@@ -17,8 +18,8 @@ module Nrepl =
     let format_value value =
       strip_fake_newline value
 
-    let nrepl_send repl msg =
-      let res = NreplClient.send_msg repl (unlines msg) in
+    let nrepl_send env msg =
+      let res = NreplClient.send_msg env (unlines msg) in
       if notnone res.err then
         printf "%s\n" (format_value (us res.err))
       else
@@ -28,23 +29,25 @@ module Nrepl =
         end;
         flush stdout
 
-    let clj_message_packet msg =
+    let nrepl_message_packet msg =
       ["2"; q "id"; q msg.mid; q "code"; q msg.code]
 
-    let replid repl = sprintf "%s:%d" repl.host repl.port
+    let node_id env = sprintf "%s:%d" env.host env.port
 
-    let clj_eval_message repl exp =
-      { mid = (replid repl) ^ "-repl"; code = exp }
+    let repl_id env = (node_id env) ^ "-repl"
 
-    let clj_dispatch_message repl exp =
-      { mid = replid repl; code = sprintf "(jark.ns/dispatch %s)" exp }
+    let make_eval_message env exp =
+      { mid = repl_id env; code = exp }
 
-    let clj_string repl exp =
-      let s = sprintf "(do (in-ns '%s) %s)" repl.ns exp in
+    let make_dispatch_message env exp =
+      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s)" exp }
+
+    let clj_string env exp =
+      let s = sprintf "(do (in-ns '%s) %s)" env.ns exp in
       Str.global_replace (Str.regexp "\"") "\\\"" s
 
-    let eval repl code =
-      let expr = clj_string repl code in
-      nrepl_send repl (clj_message_packet (clj_eval_message repl expr))
+    let eval env code =
+      let expr = clj_string env code in
+      nrepl_send env (nrepl_message_packet (make_eval_message env expr))
 
   end

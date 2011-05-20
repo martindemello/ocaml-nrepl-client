@@ -4,10 +4,9 @@ include Nrepl_frontend
 open Printf
 open Datatypes
 
-let initial_repl = {
+let initial_env = {
   ns          = "user";
   debug       = false;
-  current_exp = None;
   host        = "localhost";
   port        = 9000
 }
@@ -20,29 +19,29 @@ let display_help () =
   printf "Type something!\n";
   flush stdout
 
-let set_debug repl o =
+let set_debug env o =
   let d = match o with
   | "true"  -> true
   | "on"    -> true
   | "false" -> false
   | "off"   -> false
-  | _       -> repl.debug
+  | _       -> env.debug
   in
   printf "debug = %s\n" (if d then "true" else "false");
   flush stdout;
-  {repl with debug = d}
+  {env with debug = d}
 
-let handle_cmd repl cmd =
+let handle_cmd env cmd =
   match Str.bounded_split (Str.regexp " +") cmd 2 with
-  | ["/help"]  -> display_help (); repl
-  | ["/debug"; o] -> set_debug repl o
-  | _                -> repl
+  | ["/help"]     -> display_help (); env
+  | ["/debug"; o] -> set_debug env o
+  | _             -> env
 
 (*************************************************************************
  * repl
  * ***********************************************************************)
 
-let prompt_of repl = repl.ns ^ ">> "
+let prompt_of env = env.ns ^ ">> "
 
 let readline prompt =
   let stdin = stdin in
@@ -60,22 +59,22 @@ let bad_command () =
   printf "Bad command\n";
   flush stdout
 
-let send_cmd repl str =
-  Nrepl.eval repl str;
+let send_cmd env str =
+  Nrepl.eval env str;
   flush stdout;
-  repl
+  env
 
-let handle repl str =
+let handle env str =
   if S.length str == 0 then
-    repl
+    env
   else if S.starts_with str "/" then
-    handle_cmd repl str
+    handle_cmd env str
   else
-    send_cmd repl str
+    send_cmd env str
 
 let _ =
   try
-    let r = ref initial_repl in
+    let r = ref initial_env in
     while true do
       let str = readline (prompt_of !r) in
       r := handle !r str;

@@ -1,12 +1,11 @@
-type repl = {
+type env = {
   ns          : string;
   debug       : bool;
-  current_exp : string option;
   host        : string;
   port        : int;
 }
 
-type repl_message = {
+type nrepl_message = {
   mid: string;
   code: string;
 }
