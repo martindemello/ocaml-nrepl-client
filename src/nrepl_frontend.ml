@@ -19,7 +19,7 @@ module Nrepl =
       strip_fake_newline value
 
     let nrepl_send env msg =
-      let res = NreplClient.send_msg env (unlines msg) in
+      let res = NreplClient.send_msg env msg in
       if notnone res.err then
         printf "%s\n" (format_value (us res.err))
       else
@@ -28,9 +28,6 @@ module Nrepl =
           if notnone res.value then printf "-> %s\n" (format_value (us res.value))
         end;
         flush stdout
-
-    let nrepl_message_packet msg =
-      ["2"; q "id"; q msg.mid; q "code"; q msg.code]
 
     let node_id env = sprintf "%s:%d" env.host env.port
 
@@ -48,6 +45,6 @@ module Nrepl =
 
     let eval env code =
       let expr = clj_string env code in
-      nrepl_send env (nrepl_message_packet (make_eval_message env expr))
+      nrepl_send env (make_eval_message env expr)
 
   end

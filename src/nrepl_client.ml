@@ -63,11 +63,15 @@ module NreplClient =
     let write_all socket s =
       Unix.send socket s 0 (S.length s) []
 
+    let nrepl_message_packet msg =
+      ["2"; q "id"; q msg.mid; q "code"; q msg.code]
+
     let send_msg env msg =
       let socket = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
       let hostinfo = Unix.gethostbyname env.host in
       let server_address = hostinfo.Unix.h_addr_list.(0) in
       let _ = Unix.connect socket (Unix.ADDR_INET (server_address, env.port)) in
+      let msg = unlines (nrepl_message_packet msg) in
       write_all socket msg;
       let res = readlines socket in
       Unix.close socket;
