@@ -72,7 +72,7 @@ module NreplClient =
       let server_address = hostinfo.Unix.h_addr_list.(0) in
       let _ = Unix.connect socket (Unix.ADDR_INET (server_address, env.port)) in
       let msg = unlines (nrepl_message_packet msg) in
-      write_all socket msg;
+      let _ = write_all socket msg in
       let res = readlines socket in
       Unix.close socket;
       res
