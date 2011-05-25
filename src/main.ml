@@ -3,6 +3,7 @@
 include Nrepl_frontend
 open Printf
 open Datatypes
+open String
 
 let initial_env = {
   ns          = "user";
@@ -65,9 +66,9 @@ let send_cmd env str =
   env
 
 let handle env str =
-  if S.length str == 0 then
+  if String.length str == 0 then
     env
-  else if S.starts_with str "/" then
+  else if starts_with str "/" then
     handle_cmd env str
   else
     send_cmd env str
