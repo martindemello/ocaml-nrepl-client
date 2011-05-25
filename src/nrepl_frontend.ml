@@ -10,8 +10,8 @@ module Nrepl =
 
     (* nrepl seems to be appending a literal '\n' *)
     let strip_fake_newline str =
-      if S.ends_with str "\\n" then
-        S.rchop (S.rchop str)
+      if ends_with str "\\n" then
+        rchop (rchop str)
       else
         str
 
