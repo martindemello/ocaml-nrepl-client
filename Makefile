@@ -35,7 +35,7 @@ ocamldebug :
 	cp _build/src/main.byte jark.byte
 
 exe :
-	$(OCAMLBUILD) -libs $(WIN_LIBS) -I,/usr/lib/ocaml/ledit -ocamlc i486-mingw32-ocamlc -ocamlopt i486-mingw32-ocamlopt  main.native
+	$(OCAMLBUILD) -libs $(WIN_LIBS) -ocamlc i486-mingw32-ocamlc -ocamlopt i486-mingw32-ocamlopt  main.native
 	cp _build/src/main.native jark.exe
 
 clean::
