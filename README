@@ -1,1 +1,13 @@
 Basic OCaml nrepl client for use with jark [http://icylisper.in/jark/index.html]
+
+
+# BUILD
+   
+  ledit: http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz
+  $ make && make install && make ledit.cmxa
+  $ cp -r ledit-2.0.2/ /usr/lib/ocaml/ledit
+
+  Install pcre and camlp5
+
+
+  
