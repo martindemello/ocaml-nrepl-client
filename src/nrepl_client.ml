@@ -61,7 +61,7 @@ module NreplClient =
             get NewPacket empty_response
 
     let write_all socket s =
-      Unix.send socket s 0 (S.length s) []
+      Unix.send socket s 0 (String.length s) []
 
     let nrepl_message_packet msg =
       ["2"; q "id"; q msg.mid; q "code"; q msg.code]

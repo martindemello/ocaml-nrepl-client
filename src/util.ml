@@ -14,6 +14,20 @@ let unlines xs = concat "\n" xs
 
 let q str = sprintf "\"%s\"" str
 
+
+let strip ?(chars=" \t\r\n") s =
+  let p = ref 0 in
+  let l = length s in
+  while !p < l && contains chars (unsafe_get s !p) do
+    incr p;
+  done;
+  let p = !p in
+  let l = ref (l - 1) in
+  while !l >= p && contains chars (unsafe_get s !l) do
+    decr l;
+  done;
+  sub s p (!l - p + 1)
+
 let uq str = strip ~chars:"\"" str 
 
 let unsome default = function
@@ -24,40 +38,28 @@ let notnone x = x != None
 
 let us x = unsome "" x
 
-let ends_with src pat =
-  if ((String.length src) >= (String.length pat)) then
-    (pat =
-     String.sub src
-       ((String.length src) - (String.length pat)) (String.length pat))
-  else
+let starts_with str p =
+  let len = length p in
+  if length str < len then 
     false
+  else
+    sub str 0 len = p
+
+let ends_with s e =
+  let el = length e in
+  let sl = length s in
+  if sl < el then
+    false
+  else
+    sub s (sl-el) el = e
 
 let rchop s =
-  if s = "" then s else String.sub s 0 (String.length s - 1);;
-
-let starts_with sw s =
-  let sl = String.length s in
-  let swl = String.length sw in
-  sl >= swl && String.sub s 0 swl = sw
+  if s = "" then s 
+  else String.sub s 0 (String.length s - 1)
 
 let split path =
   let rec aux path =
     if path = Filename.current_dir_name then []
     else (Filename.basename path) :: aux (Filename.dirname path)
   in List.rev (aux path)
-
-let strip str =
-    let len = String.length str
-    and is_space char = (char = ' ' || char = '\t') in
-    let start = ref 0
-    and stop = ref (len - 1)
-    and seen_non_space = ref false in
-    for ii = 0 to len - 1 do
-      if is_space str.[ii] then
-        (if not !seen_non_space then
-          start := ii + 1)
-      else
-        (seen_non_space := true;
-         stop := ii)
-    done;
-    String.sub str !start (!stop - !start +1)
+    

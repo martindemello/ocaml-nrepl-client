@@ -3,7 +3,6 @@
 include Nrepl_frontend
 open Printf
 open Datatypes
-open String
 
 let initial_env = {
   ns          = "user";

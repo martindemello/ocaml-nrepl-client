@@ -3,7 +3,7 @@ OLIB = /usr/lib/ocaml
 
 WIN_LIBS = /usr/lib/i486-mingw32-ocaml/unix,bigarray,str,nums,$(OLIB)/camlp5/camlp5,$(OLIB)/pcre/pcre,$(OLIB)/camlp5/gramlib,$(OLIB)/ledit/ledit
 
-LIBS = unix,bigarray,str,nums,camlp5/camlp5,pcre/pcre,camlp5/gramlib,ledit/ledit
+LIBS = unix,bigarray,str,nums,$(OLIB)/camlp5/camlp5,$(OLIB)/pcre/pcre,$(OLIB)/camlp5/gramlib,$(OLIB)/ledit/ledit
 
 OCAMLBUILD = ocamlbuild -j 2 -I src -lflags -I,/usr/lib/ocaml/pcre  -lflags -I,/usr/lib/ocaml/ledit \
            -lflags -I,/usr/lib/ocaml/camlp5 -cflags  -I,/usr/lib/ocaml/ledit \
