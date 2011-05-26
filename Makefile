@@ -15,7 +15,7 @@ all:: native
 
 native :
 	$(OCAMLBUILD) -libs $(LIBS) main.native
-	cp _build/src/main.native jark.native
+	cp _build/src/main.native bin/jark
 
 
 byte :
@@ -37,7 +37,7 @@ ocamldebug :
 
 exe :
 	$(OCAMLBUILD) -libs $(WIN_LIBS) -ocamlc i486-mingw32-ocamlc -ocamlopt i486-mingw32-ocamlopt  main.native
-	cp _build/src/main.native jark.exe
+	cp _build/src/main.native bin/jark.exe
 
 clean::
 	rm -f *.cm[iox] *~ .*~ src/*~ #*#
