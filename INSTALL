@@ -11,7 +11,7 @@ camlp5
     $ cp main/*.cmxa /usr/lib/ocaml/camlp5/
 
 ledt  :  http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz and 
-    $ http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz
+    $ wget -O - http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz 2> /dev/null | tar xzvf - && cd ledit-2.02.1
     $ make && make install && make ledit.cmxa
     $ cp -r ledit-2.0.2/ /usr/lib/ocaml/ledit
 
@@ -22,7 +22,7 @@ Cross-compilation for Windows
 On Arch:
        packer -S ocaml-mingw32
        
-* Point ocamlc and ocamlopt
+* Point ocamlc and ocamlopt to their mingw32 counterparts
       rm  /usr/bin/ocamlopt 
       rm  /usr/bin/ocamlc
       ln -sf /usr/bin/i486-mingw32-ocamlopt /usr/bin/ocamlopt 
