@@ -28,9 +28,11 @@ On Arch:
       ln -sf /usr/bin/i486-mingw32-ocamlopt /usr/bin/ocamlopt 
       ln -sf /usr/bin/i486-mingw32-ocamlc /usr/bin/ocamlc
   
-* Pass a --no-opt flag to ./configure when building camlp5
+* Install dependencies as above (ledit and camlp5) along with the following changes:
+  
+  * Pass a --no-opt flag to ./configure when building camlp5
 
-* Edit Makefile in ledit and set the following variables
+  * Edit Makefile in ledit and set the following variables
 
      OCAMLC=i486-mingw32-ocamlc
      OCAMLOPT=i486-mingw32-ocamlopt
