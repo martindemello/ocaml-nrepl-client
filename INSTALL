@@ -1,0 +1,44 @@
+
+GNU/Linux and Mac OSX 
+
+Dependencies
+
+camlp5
+    $ wget -O - http://pauillac.inria.fr/~ddr/camlp5/distrib/src/camlp5-6.02.3.tgz 2> /dev/null | tar xzvf - && cd camlp5-6.02.3
+    $ ./configure && make world.opt
+    $ rm -rf /usr/lib/ocaml/camlp5
+    $ cp -r lib/  /usr/lib/ocaml/camlp5
+    $ cp main/*.cmxa /usr/lib/ocaml/camlp5/
+
+ledt  :  http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz and 
+    $ http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz
+    $ make && make install && make ledit.cmxa
+    $ cp -r ledit-2.0.2/ /usr/lib/ocaml/ledit
+
+Then run `make`
+
+Cross-compilation for Windows
+
+On Arch:
+       packer -S ocaml-mingw32
+       
+* Point ocamlc and ocamlopt
+      rm  /usr/bin/ocamlopt 
+      rm  /usr/bin/ocamlc
+      ln -sf /usr/bin/i486-mingw32-ocamlopt /usr/bin/ocamlopt 
+      ln -sf /usr/bin/i486-mingw32-ocamlc /usr/bin/ocamlc
+  
+* Pass a --no-opt flag to ./configure when building camlp5
+
+* Edit Makefile in ledit and set the following variables
+
+     OCAMLC=i486-mingw32-ocamlc
+     OCAMLOPT=i486-mingw32-ocamlopt
+     OTHER_OBJS=/usr/lib/i486-mingw32-ocaml/unix.cma -I `camlp5 -where` gramlib.cma
+     OTHER_XOBJS=/usr/lib/i486-mingw32-ocaml/unix.cmxa -I `camlp5 -where` gramlib.cmxa
+
+* run `make exe`
+
+
+ON DEBIAN:
+There is a debian repository for mingw32-ocaml: http://debian.glondu.net/mingw32/
