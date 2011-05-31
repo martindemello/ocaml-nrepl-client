@@ -72,12 +72,23 @@ let handle env str =
   else
     send_cmd env str
 
+let run_repl ?(show = 0)  =
+  if show=1 then begin
+    try
+      let r = ref initial_env in
+      while true do
+        let str = readline (prompt_of !r) in
+        r := handle !r str;
+      done;
+      flush stdout;
+    with End_of_file -> print_newline ()
+  end
+ 
 let _ =
-  try
-    let r = ref initial_env in
-    while true do
-      let str = readline (prompt_of !r) in
-      r := handle !r str;
-    done;
-    flush stdout;
-  with End_of_file -> print_newline ();
+  match Sys.argv with
+     [| _; "vm" |]   -> print_string Nrepl.vm
+  |  [| _; "cp" |]   -> print_string Nrepl.cp
+  |  [| _; "repl" |] -> run_repl ~show:1
+  |  _ -> prerr_string "Usage: MODULE COMMAND\n";
+
+

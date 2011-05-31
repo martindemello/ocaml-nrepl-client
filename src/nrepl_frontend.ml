@@ -47,4 +47,14 @@ module Nrepl =
       let expr = clj_string env code in
       nrepl_send env (make_eval_message env expr)
 
+    (* commands *)
+    let vm = 
+      "vm command\n"
+
+    let cp = 
+      "cp module\n"
+      
+    let show_repl =
+      "repl\n"
+
   end

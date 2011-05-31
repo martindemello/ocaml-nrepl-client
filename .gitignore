@@ -4,3 +4,4 @@
 *.o
 ._d/
 nrepl-client
+main.native
