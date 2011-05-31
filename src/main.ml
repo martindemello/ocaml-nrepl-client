@@ -86,9 +86,14 @@ let run_repl ?(show = 0)  =
  
 let _ =
   match Sys.argv with
-     [| _; "vm" |]   -> print_string Nrepl.vm
-  |  [| _; "cp" |]   -> print_string Nrepl.cp
+     [| _; "vm" |]   -> print_endline Nrepl.vm_usage
+  |  [| _; "cp" |]   -> print_endline Nrepl.cp_usage
+  |  [| _; "repo" |]   -> print_endline Nrepl.repo_usage
+  |  [| _; "ns" |]   -> print_endline Nrepl.ns_usage
+  |  [| _; "package" |]   -> print_endline Nrepl.package_usage
+  |  [| _; "cp" ; "list" |]   -> print_endline Nrepl.cp_list
   |  [| _; "repl" |] -> run_repl ~show:1
-  |  _ -> prerr_string "Usage: MODULE COMMAND\n";
+  |  [| _; "version" |] -> print_endline Nrepl.version
+  |  _ -> print_endline Nrepl.usage;
 
 
