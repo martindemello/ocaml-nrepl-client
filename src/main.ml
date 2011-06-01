@@ -84,16 +84,20 @@ let run_repl ?(show = 0)  =
     with End_of_file -> print_newline ()
   end
  
+let pe s = print_endline s
+
 let _ =
-  match Sys.argv with
-     [| _; "vm" |]   -> print_endline Nrepl.vm_usage
-  |  [| _; "cp" |]   -> print_endline Nrepl.cp_usage
-  |  [| _; "repo" |]   -> print_endline Nrepl.repo_usage
-  |  [| _; "ns" |]   -> print_endline Nrepl.ns_usage
-  |  [| _; "package" |]   -> print_endline Nrepl.package_usage
-  |  [| _; "cp" ; "list" |]   -> print_endline Nrepl.cp_list
-  |  [| _; "repl" |] -> run_repl ~show:1
-  |  [| _; "version" |] -> print_endline Nrepl.version
-  |  _ -> print_endline Nrepl.usage;
-
-
+  match (List.tl (Array.to_list Sys.argv)) with
+    "vm" :: []      -> pe Nrepl.vm_usage
+  | "vm" :: a       -> pe (Nrepl.vm (List.nth a 0) ~arg:(List.tl a))
+  | "cp" :: []      -> pe (Nrepl.cp "usage" ~arg:[])
+  | "cp" :: a       -> pe (Nrepl.cp (List.nth a 0) ~arg:(List.tl a))
+  | "ns" :: []      -> pe Nrepl.ns_usage
+  | "ns" :: a       -> pe (Nrepl.ns (List.nth a 0) ~arg:(List.tl a))
+  | "package" :: [] -> pe Nrepl.package_usage
+  | "package" :: a  -> pe (Nrepl.package (List.nth a 0) ~arg:(List.tl a))
+  | "repo" :: []    -> pe Nrepl.repo_usage
+  |  "repl" :: a    -> run_repl ~show:1
+  |  "version" :: a -> pe Nrepl.version
+  |  _              -> pe Nrepl.usage; 
+ 

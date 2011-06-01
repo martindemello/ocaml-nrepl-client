@@ -107,12 +107,6 @@ module Nrepl =
                  "package latest (--package -p PACKAGE)" ;
                  "\tPrint the latest version of the package" ]
 
-    let cp_list =
-      "cp list"
-
-    let version = 
-      "version 0.4"
-
     let usage =
       unlines ["cp\tlist add" ;
                "doc\tsearch examples comments" ;
@@ -120,5 +114,58 @@ module Nrepl =
                "package\tinstall uninstall versions deps search installed latest" ;
                "repo\tlist add remove" ;
                "vm\tstart connect stop stat uptime threads" ]
-    
+
+    let vm_start ?(run = 0) =
+      if run=1 then begin
+        Sys.command "java -cp \"/$HOME/.cljr/lib/*\" jark.vm 9000 &";
+        Unix.sleep 5;
+        "Started JVM on port 9000"
+      end
+      else "Not starting JVM"
+
+    (* commands *)
+
+    let cp cmd ?(arg = []) =
+      match cmd with
+      | "usage"   -> cp_usage
+      | "help"    -> cp_usage
+      | "list"    -> "Listing classpath"
+      | "add"     -> "Adding jar " ^ (String.concat " " arg)
+      |  _        -> cp_usage
+
+    let vm cmd ?(arg = []) =
+      match cmd with
+      | "usage"   -> vm_usage
+      | "start"   -> vm_start ~run:1
+      | "connect" -> "Connecting vm" ^ (String.concat " " arg)
+      | "stat"    -> "VM stat"
+      | "uptime"  -> "VM uptime"
+      | "thread"  -> "VM threads"
+      |  _        -> vm_usage
+
+    let ns cmd ?(arg = []) =
+      match cmd with
+      | "usage"   -> ns_usage
+      | "list"    -> "List namespaces"
+      | "find"    -> "find namespaces " ^ (String.concat " " arg)
+      | "load"    -> "Load namespace"
+      | "run"     -> "run namespace"
+      | "repl"    -> "repl"
+      |  _        -> ns_usage
+
+    let package cmd ?(arg = []) =
+      match cmd with
+      | "usage"     -> package_usage
+      | "install"   -> "Install package"
+      | "uninstall" -> "Uninstall package " ^ (String.concat " " arg)
+      | "versions"  -> "package versions"
+      | "deps"      -> "dependencies"
+      | "installed" -> "install a package"
+      | "latest"    -> "Latest"
+      |  _          -> package_usage
+
+    let version = 
+      "version 0.4"
+
   end
+ 
