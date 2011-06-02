@@ -14,7 +14,6 @@ let unlines xs = concat "\n" xs
 
 let q str = sprintf "\"%s\"" str
 
-
 let strip ?(chars=" \t\r\n") s =
   let p = ref 0 in
   let l = length s in
@@ -75,4 +74,11 @@ let syscall cmd =
   (Buffer.contents buf)
 
 let pe s = print_endline s
+
+let car xs = (List.nth xs 0)
+
+let cdr xs = (List.tl xs)
+
+let stringify s = Str.global_replace (Str.regexp "\"") "\\\"" s
+        
 

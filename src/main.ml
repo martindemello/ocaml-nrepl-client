@@ -88,17 +88,21 @@ let run_repl ?(show = 0) () =
 let _ =
   match (List.tl (Array.to_list Sys.argv)) with
     "vm" :: []      -> pe vm_usage
-  | "vm" :: a       -> Nrepl.vm (List.nth a 0) ~arg:(List.tl a) ()
+  | "vm" :: xs      -> Nrepl.vm (car xs) ~arg:(cdr xs) ()
   | "cp" :: []      -> pe cp_usage
-  | "cp" :: a       -> Nrepl.cp (List.nth a 0) ~arg:(List.tl a) ()
+  | "cp" :: xs      -> Nrepl.cp (car xs) ~arg:(cdr xs) ()
   | "ns" :: []      -> pe ns_usage
-  | "ns" :: a       -> Nrepl.ns (List.nth a 0) ~arg:(List.tl a) ()
+  | "ns" :: xs      -> Nrepl.ns (car xs) ~arg:(cdr xs) ()
   | "package" :: [] -> pe package_usage
-  | "package" :: a  -> pe (Nrepl.package (List.nth a 0) ~arg:(List.tl a) ())
+  | "package" :: xs -> pe (Nrepl.package (car xs) ~arg:(cdr xs) ())
+  | "swank" :: []   -> pe swank_usage
+  | "swank" :: xs   -> Nrepl.swank (car xs) ~arg:(cdr xs) ()
   | "repo" :: []    -> pe repo_usage
-  | "repl" :: a     -> run_repl ~show:1 ()
+  | "repl" :: []    -> run_repl ~show:1 ()
   | "version" :: [] -> pe Nrepl.version
+  | "--version" :: [] -> pe Nrepl.version
   | "-v" :: []      -> pe Nrepl.version
+  (* | "-e" :: xs      ->  Nrepl.eval_cmd (car xs) ~run:1 () *)
   | "install" :: [] -> pe Nrepl.install
   |  _              -> pe usage; 
  

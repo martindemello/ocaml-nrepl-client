@@ -25,6 +25,13 @@ let repo_usage =
             "\tAdd repository" ;
             "remove URL" ;
             "\t Remove repository"]
+
+let swank_usage =
+  unlines ["start [--port 4005]" ; 
+            "\tStart a swank server on given port" ;
+            "stop" ;
+            "\tStop an instance of the server"]
+
     
 let cp_usage = 
   unlines ["cp list" ;

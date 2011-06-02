@@ -37,8 +37,8 @@ module Nrepl =
     let make_eval_message env exp =
       { mid = repl_id env; code = exp }
 
-    let make_dispatch_message env exp =
-      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s)" exp }
+    let make_dispatch_message env ns fn =
+      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s %s)" ns fn }
 
     let clj_string env exp =
       let s = sprintf "(do (in-ns '%s) %s)" env.ns exp in
@@ -47,6 +47,10 @@ module Nrepl =
     let eval env code =
       let expr = clj_string env code in
       nrepl_send env (make_eval_message env expr)
+
+    let eval_dispatch env ns fn =
+      (* let expr = clj_string env code in *)
+      nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
 
     (* frontend commands *)
     let set_env ?(host="localhost") ?(port=9000) () =
@@ -76,10 +80,10 @@ module Nrepl =
       let env = (set_env ~host:host ~port:port ()) in
       eval env "(jark.vm/stats)"
 
-    let eval_cmd code ?(run = 0) () = 
+    let eval_cmd ns fn ?(run = 0) () = 
       if run=1 then begin
         let env = get_env in
-        eval env code
+        eval_dispatch env ns fn
       end
 
     let cp_add path ?(run = 0) () =
@@ -100,7 +104,7 @@ module Nrepl =
       match cmd with
       | "usage"   -> pe cp_usage
       | "help"    -> pe cp_usage
-      | "list"    -> eval_cmd "(jark.cp/ls)" ~run:1 ()
+      | "list"    -> eval_cmd (q "jark.cp") (q "ls") ~run:1 ()
       | "add"     -> cp_add (List.nth arg 0) ~run:1 ()
       |  _        -> pe cp_usage
 
@@ -109,20 +113,20 @@ module Nrepl =
       | "usage"   -> pe vm_usage
       | "start"   -> (vm_start ~run:1 ())
       | "connect" -> vm_connect ~host:"localhost" ~port:9000 ()
-      | "stat"    -> eval_cmd "(jark.vm/stats)" ~run:1 ()
-      | "uptime"  -> eval_cmd "(jark.vm/uptime)" ~run:1 ()
-      | "gc"      -> eval_cmd "(jark.vm/gc)" ~run:1 ()
-      | "threads" -> eval_cmd "(jark.vm/threads)" ~run:1 ()
-      |  _        -> pe vm_usage
+      | "stat"    -> eval_cmd (q "jark.vm") (q "stats")  ~run:1 ()
+      | "uptime"  -> eval_cmd (q "jark.vm") (q "uptime") ~run:1 ()
+      | "gc"      -> eval_cmd (q "jark.vm") (q "gc")     ~run:1 ()
+      | "threads" -> eval_cmd (q "jark.vm") (q "threads")  ~run:1 ()
+      |  _        -> pe vm_usage 
 
     let ns cmd ?(arg = [] ) () =
       match cmd with
       | "usage"   -> pe ns_usage
-      | "list"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
-      | "find"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
-      | "load"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
-      | "run"     -> eval_cmd "(jark.ns/list)" ~run:1 () 
-      | "repl"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
+      | "list"    -> eval_cmd (q "jark.ns") (q "list") ~run:1 ()
+      | "find"    -> eval_cmd (q "jark.ns") (q "list") ~run:1 ()
+      | "load"    -> ns_load (car arg) ~run:1 ()
+      | "run"     -> eval_cmd (q "jark.ns") (q "list") ~run:1 () 
+      | "repl"    -> eval_cmd (q "jark.ns") (q "list") ~run:1 ()
       |  _        -> pe ns_usage
 
     let package cmd ?(arg = []) () =
@@ -135,6 +139,13 @@ module Nrepl =
       | "installed" -> "install a package"
       | "latest"    -> "Latest"
       |  _          -> package_usage
+
+    let swank cmd ?(arg = [] ) () =
+      match cmd with
+      | "usage"   -> pe swank_usage
+      (* | "start"   -> eval_cmd "(jark.swank/start \"0.0.0.0\" 4005)" ~run:1 () *)
+      |  _        -> pe ns_usage
+
 
     let version = 
       "version 0.4"
