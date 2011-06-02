@@ -6,7 +6,7 @@ WIN_LIBS = $(WLIB)/unix,$(WLIB)/bigarray,$(WLIB)/str,$(WLIB)/nums,$(OLIB)/camlp5
 
 LIBS = unix,bigarray,str,nums,$(OLIB)/camlp5/camlp5,$(OLIB)/camlp5/gramlib,$(OLIB)/ledit/ledit
 
-OCAMLBUILD = ocamlbuild -j 2 -I src -lflags -I,/usr/lib/ocaml/pcre  -lflags -I,/usr/lib/ocaml/ledit \
+OCAMLBUILD = ocamlbuild -j 2 -quiet -I src -lflags -I,/usr/lib/ocaml/pcre  -lflags -I,/usr/lib/ocaml/ledit \
            -lflags -I,/usr/lib/ocaml/camlp5 -cflags  -I,/usr/lib/ocaml/ledit \
            -cflags -I,/usr/lib/ocaml/pcre -cflags -I,/usr/lib/ocaml/camlp5 
 

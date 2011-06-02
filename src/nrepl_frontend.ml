@@ -2,6 +2,7 @@
 
 include Util
 include Nrepl_client
+include Usage
 open Printf
 
 module Nrepl =
@@ -18,14 +19,14 @@ module Nrepl =
     let format_value value =
       strip_fake_newline value
 
-    let nrepl_send env msg =
+    let nrepl_send env msg  =
       let res = NreplClient.send_msg env msg in
       if notnone res.err then
         printf "%s\n" (format_value (us res.err))
       else
         begin
           if notnone res.out then printf "%s\n" (us res.out);
-          if notnone res.value then printf "-> %s\n" (format_value (us res.value))
+          if notnone res.value then printf "%s\n" (format_value (us res.value))
         end;
         flush stdout
 
@@ -47,113 +48,84 @@ module Nrepl =
       let expr = clj_string env code in
       nrepl_send env (make_eval_message env expr)
 
-    (* command usage *)
-    let vm_usage = 
-      unlines ["vm start [--port -p (9000)] [--jvm_opts o]" ;
-                "\tStart a local Jark server. Takes optional JVM options as a \" delimited string" ;
-                "\tTakes optional JVM options as a \" delimited string" ;
-                 "vm stop" ;
-                "\tShuts down the current Jark server" ;
-                "vm connect [--host -r (localhost)] [--port -p (9000)]" ;
-                "\tConnect to a remote JVM" ;
-                "vm threads" ;
-                "\tPrint a list of JVM threads" ;
-                "vm uptime" ;
-                "\tThe uptime of the current Jark server" ;
-                "vm gc" ;
-                "\tRun garbage collection on the current Jark server" ]
+    (* frontend commands *)
+    let set_env ?(host="localhost") ?(port=9000) () =
+      (* FIXME: write to disk *)
+      {
+          ns          = "user";
+          debug       = false;
+          host        = host;
+          port        = 9000
+      }
 
-    let repo_usage =
-      unlines ["repo list" ; 
-                "\tList current repositories" ;
-                "repo add URL" ;
-                "\tAdd repository" ;
-                "remove URL" ;
-                "\t Remove repository"]
-
-    let cp_usage = 
-      unlines ["cp list" ;
-                "\tList the classpath for the current Jark server" ;
-                "cp add args+" ;
-                "\tAdd to the classpath for the current Jark server";
-                "cp run main-class" ;
-                "\tRun main-class on the current Jark server"]
-
-    let ns_usage = 
-      unlines ["ns list (prefix)?" ;
-               "\tList all namespaces in the classpath. Optionally takes a namespace prefix" ;
-               "ns find prefix" ;
-               "\tFind all namespaces starting with the given name" ;
-               "ns load file" ;
-               "\tLoads the given clj file, and adds relative classpath" ;
-               "ns run main-ns args*" ;
-               "\tRuns the given main function with args" ;
-               "ns repl namespace" ;
-               "\tLaunch a repl at given ns" ]
-
-    let package_usage = 
-      unlines ["package install (--package -p PACKAGE) [--version -v]" ;
-                "\tInstall the relevant version of package from clojars" ;
-                "package uninstall (--package -p PACKAGE)" ;
-                 "\tUninstall the package" ;
-                "package versions (--package -p PACKAGE)" ;
-                "\tList the versions of package installed" ;
-                "package deps (--package -p PACKAGE) [--version -v]" ;
-                "\tPrint the library dependencies of package" ;
-                "package search (--package -p PACKAGE)" ;
-                "\tSearch clojars for package" ;
-                "package installed" ;
-                "\tList all packages installed" ;
-                 "package latest (--package -p PACKAGE)" ;
-                 "\tPrint the latest version of the package" ]
-
-    let usage =
-      unlines ["cp\tlist add" ;
-               "doc\tsearch examples comments" ;
-               "ns\tlist find load run repl" ;
-               "package\tinstall uninstall versions deps search installed latest" ;
-               "repo\tlist add remove" ;
-               "vm\tstart connect stop stat uptime threads" ]
-
-    let vm_start ?(run = 0) =
+    let get_env = 
+      {
+          ns          = "user";
+          debug       = false;
+          host        = "localhost";
+          port        = 9000
+      } 
+     
+    let vm_start ?(run = 0) () =
       if run=1 then begin
         Sys.command "java -cp \"/$HOME/.cljr/lib/*\" jark.vm 9000 &";
-        Unix.sleep 5;
-        "Started JVM on port 9000"
+        Unix.sleep 5
       end
-      else "Not starting JVM"
+
+    let vm_connect ?(host="localhost") ?(port=9000) () =
+      let env = (set_env ~host:host ~port:port ()) in
+      eval env "(jark.vm/stats)"
+
+    let eval_cmd code ?(run = 0) () = 
+      if run=1 then begin
+        let env = get_env in
+        eval env code
+      end
+
+    let cp_add path ?(run = 0) () =
+      if run=1 then begin
+        let env = get_env in
+        eval env (sprintf "(jark.cp/add \"%s\")" path)
+      end
+
+    let ns_load file ?(run = 0) () =
+      if run=1 then begin
+        let env = get_env in
+        eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
+      end
 
     (* commands *)
 
-    let cp cmd ?(arg = []) =
+    let cp cmd ?(arg = []) () =
       match cmd with
-      | "usage"   -> cp_usage
-      | "help"    -> cp_usage
-      | "list"    -> "Listing classpath"
-      | "add"     -> "Adding jar " ^ (String.concat " " arg)
-      |  _        -> cp_usage
+      | "usage"   -> pe cp_usage
+      | "help"    -> pe cp_usage
+      | "list"    -> eval_cmd "(jark.cp/ls)" ~run:1 ()
+      | "add"     -> cp_add (List.nth arg 0) ~run:1 ()
+      |  _        -> pe cp_usage
 
-    let vm cmd ?(arg = []) =
+    let vm cmd ?(arg = []) () =
       match cmd with
-      | "usage"   -> vm_usage
-      | "start"   -> vm_start ~run:1
-      | "connect" -> "Connecting vm" ^ (String.concat " " arg)
-      | "stat"    -> "VM stat"
-      | "uptime"  -> "VM uptime"
-      | "thread"  -> "VM threads"
-      |  _        -> vm_usage
+      | "usage"   -> pe vm_usage
+      | "start"   -> (vm_start ~run:1 ())
+      | "connect" -> vm_connect ~host:"localhost" ~port:9000 ()
+      | "stat"    -> eval_cmd "(jark.vm/stats)" ~run:1 ()
+      | "uptime"  -> eval_cmd "(jark.vm/uptime)" ~run:1 ()
+      | "gc"      -> eval_cmd "(jark.vm/gc)" ~run:1 ()
+      | "threads" -> eval_cmd "(jark.vm/threads)" ~run:1 ()
+      |  _        -> pe vm_usage
 
-    let ns cmd ?(arg = []) =
+    let ns cmd ?(arg = [] ) () =
       match cmd with
-      | "usage"   -> ns_usage
-      | "list"    -> "List namespaces"
-      | "find"    -> "find namespaces " ^ (String.concat " " arg)
-      | "load"    -> "Load namespace"
-      | "run"     -> "run namespace"
-      | "repl"    -> "repl"
-      |  _        -> ns_usage
+      | "usage"   -> pe ns_usage
+      | "list"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
+      | "find"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
+      | "load"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
+      | "run"     -> eval_cmd "(jark.ns/list)" ~run:1 () 
+      | "repl"    -> eval_cmd "(jark.ns/list)" ~run:1 ()
+      |  _        -> pe ns_usage
 
-    let package cmd ?(arg = []) =
+    let package cmd ?(arg = []) () =
       match cmd with
       | "usage"     -> package_usage
       | "install"   -> "Install package"
@@ -166,6 +138,9 @@ module Nrepl =
 
     let version = 
       "version 0.4"
+
+    let install =
+      "Downloading clojure jar .."
 
   end
  

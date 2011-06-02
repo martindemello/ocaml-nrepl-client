@@ -63,8 +63,6 @@ let split path =
     else (Filename.basename path) :: aux (Filename.dirname path)
   in List.rev (aux path)
 
-(* unix stuff *)
-
 let syscall cmd =
   let ic, oc = Unix.open_process cmd in
   let buf = Buffer.create 16 in
@@ -75,3 +73,6 @@ let syscall cmd =
    with End_of_file -> ());
   let _ = Unix.close_process (ic, oc) in
   (Buffer.contents buf)
+
+let pe s = print_endline s
+

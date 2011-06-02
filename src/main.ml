@@ -1,6 +1,7 @@
 (*pp $PP *)
 
 include Nrepl_frontend
+include Usage
 open Printf
 open Datatypes
 
@@ -72,7 +73,7 @@ let handle env str =
   else
     send_cmd env str
 
-let run_repl ?(show = 0)  =
+let run_repl ?(show = 0) () =
   if show=1 then begin
     try
       let r = ref initial_env in
@@ -84,20 +85,20 @@ let run_repl ?(show = 0)  =
     with End_of_file -> print_newline ()
   end
  
-let pe s = print_endline s
-
 let _ =
   match (List.tl (Array.to_list Sys.argv)) with
-    "vm" :: []      -> pe Nrepl.vm_usage
-  | "vm" :: a       -> pe (Nrepl.vm (List.nth a 0) ~arg:(List.tl a))
-  | "cp" :: []      -> pe (Nrepl.cp "usage" ~arg:[])
-  | "cp" :: a       -> pe (Nrepl.cp (List.nth a 0) ~arg:(List.tl a))
-  | "ns" :: []      -> pe Nrepl.ns_usage
-  | "ns" :: a       -> pe (Nrepl.ns (List.nth a 0) ~arg:(List.tl a))
-  | "package" :: [] -> pe Nrepl.package_usage
-  | "package" :: a  -> pe (Nrepl.package (List.nth a 0) ~arg:(List.tl a))
-  | "repo" :: []    -> pe Nrepl.repo_usage
-  |  "repl" :: a    -> run_repl ~show:1
-  |  "version" :: a -> pe Nrepl.version
-  |  _              -> pe Nrepl.usage; 
+    "vm" :: []      -> pe vm_usage
+  | "vm" :: a       -> Nrepl.vm (List.nth a 0) ~arg:(List.tl a) ()
+  | "cp" :: []      -> pe cp_usage
+  | "cp" :: a       -> Nrepl.cp (List.nth a 0) ~arg:(List.tl a) ()
+  | "ns" :: []      -> pe ns_usage
+  | "ns" :: a       -> Nrepl.ns (List.nth a 0) ~arg:(List.tl a) ()
+  | "package" :: [] -> pe package_usage
+  | "package" :: a  -> pe (Nrepl.package (List.nth a 0) ~arg:(List.tl a) ())
+  | "repo" :: []    -> pe repo_usage
+  | "repl" :: a     -> run_repl ~show:1 ()
+  | "version" :: [] -> pe Nrepl.version
+  | "-v" :: []      -> pe Nrepl.version
+  | "install" :: [] -> pe Nrepl.install
+  |  _              -> pe usage; 
  
