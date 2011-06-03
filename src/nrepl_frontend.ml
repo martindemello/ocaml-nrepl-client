@@ -10,13 +10,9 @@ module Nrepl =
     open Datatypes
 
     (* nrepl seems to be appending a literal '\n' *)
-    let strip_fake_newline str =
-      if ends_with str "\\n" then
-        rchop (rchop str)
-      else
-        str
 
     let format_value value =
+      strip ~chars:"\n" value;
       strip_fake_newline value
 
     let nrepl_send env msg  =
@@ -25,7 +21,7 @@ module Nrepl =
         printf "%s\n" (format_value (us res.err))
       else
         begin
-          if notnone res.out then printf "%s\n" (us res.out);
+          if notnone res.out then printf "%s\n" (format_value (us res.out));
           if notnone res.value then printf "%s\n" (format_value (us res.value))
         end;
         flush stdout

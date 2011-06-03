@@ -81,4 +81,8 @@ let cdr xs = (List.tl xs)
 
 let stringify s = Str.global_replace (Str.regexp "\"") "\\\"" s
         
-
+let strip_fake_newline str =
+  if ends_with str "\\n" then
+    rchop (rchop str)
+  else
+    str
