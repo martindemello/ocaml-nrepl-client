@@ -51,19 +51,6 @@ module Nrepl =
     let eval_dispatch env ns fn =
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
 
-    let eval_cmd ns fn ?(run = 0) () = 
-      if run=1 then begin
-        let env = get_env in
-        eval_dispatch env ns fn
-      end
-
-    let eval_exp exp ?(run = 0) () = 
-      if run=1 then begin
-        let env = get_env in
-        eval_dispatch env exp
-      end
-
-    (* frontend commands *)
     let set_env ?(host="localhost") ?(port=9000) () =
       (* FIXME: write to disk *)
       {
@@ -80,6 +67,20 @@ module Nrepl =
           host        = "localhost";
           port        = 9000
       } 
+
+    let eval_cmd ns fn ?(run = 0) () = 
+      if run=1 then begin
+        let env = get_env in
+        eval_dispatch env ns fn
+      end
+
+    let eval_exp exp ?(run = 0) () = 
+      if run=1 then begin
+        let env = get_env in
+        eval env exp
+      end
+
+    (* frontend commands *)
      
     let vm_start ?(run = 0) () =
       if run=1 then begin
