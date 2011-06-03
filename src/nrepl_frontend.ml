@@ -49,8 +49,19 @@ module Nrepl =
       nrepl_send env (make_eval_message env expr)
 
     let eval_dispatch env ns fn =
-      (* let expr = clj_string env code in *)
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
+
+    let eval_cmd ns fn ?(run = 0) () = 
+      if run=1 then begin
+        let env = get_env in
+        eval_dispatch env ns fn
+      end
+
+    let eval_exp exp ?(run = 0) () = 
+      if run=1 then begin
+        let env = get_env in
+        eval_dispatch env exp
+      end
 
     (* frontend commands *)
     let set_env ?(host="localhost") ?(port=9000) () =
@@ -79,12 +90,6 @@ module Nrepl =
     let vm_connect ?(host="localhost") ?(port=9000) () =
       let env = (set_env ~host:host ~port:port ()) in
       eval env "(jark.vm/stats)"
-
-    let eval_cmd ns fn ?(run = 0) () = 
-      if run=1 then begin
-        let env = get_env in
-        eval_dispatch env ns fn
-      end
 
     let cp_add path ?(run = 0) () =
       if run=1 then begin
@@ -143,8 +148,8 @@ module Nrepl =
     let swank cmd ?(arg = [] ) () =
       match cmd with
       | "usage"   -> pe swank_usage
-      (* | "start"   -> eval_cmd "(jark.swank/start \"0.0.0.0\" 4005)" ~run:1 () *)
-      |  _        -> pe ns_usage
+      | "start"   -> eval_exp "(jark.swank/start \"0.0.0.0\" 4005)" ~run:1 ()
+      |  _        -> pe swank_usage
 
 
     let version = 

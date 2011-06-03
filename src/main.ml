@@ -102,7 +102,7 @@ let _ =
   | "version" :: [] -> pe Nrepl.version
   | "--version" :: [] -> pe Nrepl.version
   | "-v" :: []      -> pe Nrepl.version
-  (* | "-e" :: xs      ->  Nrepl.eval_cmd (car xs) ~run:1 () *)
+  | "-e" :: xs      ->  Nrepl.eval_exp (car xs) ~run:1 ()
   | "install" :: [] -> pe Nrepl.install
   |  _              -> pe usage; 
  
