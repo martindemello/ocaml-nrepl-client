@@ -4,75 +4,78 @@ include Util
 
 (* command usage *)
 let vm_usage = 
-  unlines ["vm start [--port -p (9000)] [--jvm_opts o]" ;
-            "\tStart a local Jark server. Takes optional JVM options as a \" delimited string" ;
-            "\tTakes optional JVM options as a \" delimited string" ;
-            "vm stop" ;
-            "\tShuts down the current Jark server" ;
-            "vm connect [--host -r (localhost)] [--port -p (9000)]" ;
-            "\tConnect to a remote JVM" ;
-            "vm threads" ;
-            "\tPrint a list of JVM threads" ;
-            "vm uptime" ;
-            "\tThe uptime of the current Jark server" ;
-            "vm gc" ;
-            "\tRun garbage collection on the current Jark server" ]
+  unlines ["usage: jark [options] vm <command> <args>";
+            "Available commands for 'vm' module:\n";
+            "    start     [-p|--port=<9000>] [-j|--jvm_opts=<opts>] [--log=<path>] [-n|--name=<vm-name>]" ;
+            "              Start a local Jark server. Takes optional JVM options as a \" delimited string\n" ;
+            "    stop      [-n|--name=<vm-name>]";
+            "              Shuts down the current instance of the JVM\n" ;
+            "    connect   [-a|--host=<localhost>] [-p|--port=<port>] [-n|--name=<vm-name>]" ;
+            "              Connect to a remote JVM\n" ;
+            "    threads   Print a list of JVM threads\n" ;
+            "    uptime    uptime of the current instance of the JVM\n" ;
+            "    gc        Run garbage collection on the current instance of the JVM" ]
 
 let repo_usage =
-  unlines ["repo list" ; 
-            "\tList current repositories" ;
-            "repo add URL" ;
-            "\tAdd repository" ;
-            "remove URL" ;
-            "\t Remove repository"]
+  unlines ["usage: jark [options] repo <command> <args>";
+            "Available commands for 'repo' module:\n";
+            "    list      List current repositories\n" ;
+            "    add       URL" ;
+            "              Add repository\n" ;
+            "    remove    URL" ;
+            "              Remove repository"]
 
 let swank_usage =
-  unlines ["start [--port 4005]" ; 
-            "\tStart a swank server on given port" ;
-            "stop" ;
-            "\tStop an instance of the server"]
+  unlines ["usage: jark [options] swank <command> <args>";
+            "Available commands for 'swank' module:\n";
+            "    start     [--port 4005]" ; 
+            "              Start a swank server on given port\n" ;
+            "    stop      Stop an instance of the server"]
 
-    
 let cp_usage = 
-  unlines ["cp list" ;
-            "\tList the classpath for the current Jark server" ;
-            "cp add args+" ;
-            "\tAdd to the classpath for the current Jark server";
-            "cp run main-class" ;
-            "\tRun main-class on the current Jark server"]
+  unlines ["usage: jark [options] cp <command> <args>";
+            "Available commands for 'cp' module:\n";
+            "    list      List the classpath for the current instance of the JVM\n" ;
+            "    add       path+" ;
+            "              Add to the classpath for the current instance of the JVM"]
 
 let ns_usage = 
-  unlines ["ns list (prefix)?" ;
-            "\tList all namespaces in the classpath. Optionally takes a namespace prefix" ;
-            "ns find prefix" ;
-            "\tFind all namespaces starting with the given name" ;
-            "ns load file" ;
-            "\tLoads the given clj file, and adds relative classpath" ;
-            "ns run main-ns args*" ;
-            "\tRuns the given main function with args" ;
-            "ns repl namespace" ;
-            "\tLaunch a repl at given ns" ]
+  unlines ["usage: jark [options] ns <command> <args>";
+            "Available commands for 'ns' module:\n";
+            "    list      [prefix]" ;
+            "              List all namespaces in the classpath. Optionally takes a namespace prefix\n" ;
+            "    load      [--env=<string>] file" ;
+            "              Loads the given clj file, and adds relative classpath"]
 
 let package_usage = 
-  unlines ["package install (--package -p PACKAGE) [--version -v]" ;
-            "\tInstall the relevant version of package from clojars" ;
-            "package uninstall (--package -p PACKAGE)" ;
-            "\tUninstall the package" ;
-            "package versions (--package -p PACKAGE)" ;
-            "\tList the versions of package installed" ;
-            "package deps (--package -p PACKAGE) [--version -v]" ;
-            "\tPrint the library dependencies of package" ;
-            "package search (--package -p PACKAGE)" ;
-            "\tSearch clojars for package" ;
-            "package installed" ;
-            "\tList all packages installed" ;
-            "package latest (--package -p PACKAGE)" ;
-            "\tPrint the latest version of the package" ]
+  unlines ["usage: jark [options] package <command> <args>";
+            "Available commands for 'package' module:\n";
+            "    install    -p|--package <package> [-v|--version <version>]" ;
+            "               Install the relevant version of package from clojars\n" ;
+            "    uninstall  -p|--package <package>" ;
+            "               Uninstall the package\n" ;
+            "    versions   -p|--package <package>" ;
+            "               List the versions of package installed\n" ;
+            "    deps       -p|--package <package> [-v|--version <version>]" ;
+            "               Print the library dependencies of package\n" ;
+            "    search     -p|--package <package>" ;
+            "               Search clojars for package\n" ;
+            "    list       List all packages installed\n" ;
+            "    latest     -p|--package <package>" ;
+            "               Print the latest version of the package" ]
 
 let usage =
-  unlines ["cp\tlist add" ;
-            "doc\tsearch examples comments" ;
-            "ns\tlist find load run repl" ;
-            "package\tinstall uninstall versions deps search installed latest" ;
-            "repo\tlist add remove" ;
-            "vm\tstart connect stop stat uptime threads" ]
+  unlines ["usage: jark [-v|--version] [-h|--help]" ;
+            "            [-r|repl] [-e|--eval]" ;
+            "            [-a|--host=<hostname>] [-p|--port=<port>] <module> <command> <args>" ;
+            "";
+            "The most commonly used jark modules are:" ;
+            "    cp       list add" ;
+            "    doc      search examples comments" ;
+            "    ns       list find load run repl" ;
+            "    package  install uninstall versions deps search installed latest" ;
+            "    repo     list add remove" ;
+            "    swank    start stop" ;
+            "    vm       start connect stop stat uptime threads gc";
+            "";
+            "See 'jark <module>' for more information on a specific module."]
