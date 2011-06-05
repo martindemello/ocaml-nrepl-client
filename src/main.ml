@@ -2,6 +2,7 @@
 
 include Nrepl_frontend
 include Usage
+open ExtList
 
 let _ =
   match (List.tl (Array.to_list Sys.argv)) with
@@ -14,13 +15,13 @@ let _ =
   | "package" :: [] -> pe package_usage
   | "package" :: xs -> pe (Nrepl.package (car xs) ~arg:(cdr xs) ())
   | "swank" :: []   -> pe swank_usage
-  | "swank" :: xs   -> Nrepl.swank (car xs) ~arg:(cdr xs) ()
+  | "swank" :: xs   -> Nrepl.swank (List.first xs) ~arg:(cdr xs) ()
   | "repo" :: []    -> pe repo_usage
   (* | "repl" :: []    -> run_repl ~show:1 () *)
   | "version" :: [] -> pe Nrepl.version
   | "--version" :: [] -> pe Nrepl.version
   | "-v" :: []      -> pe Nrepl.version
-  | "-e" :: xs      ->  Nrepl.eval_exp (car xs) ~run:1 ()
+  | "-e" :: xs      ->  Nrepl.eval_exp (List.first xs) ~run:1 ()
   | "install" :: [] -> pe Nrepl.install
   |  _              -> pe usage; 
  

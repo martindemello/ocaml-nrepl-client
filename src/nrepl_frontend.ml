@@ -49,6 +49,7 @@ module Nrepl =
 
     let set_env ?(host="localhost") ?(port=9000) () =
       (* FIXME: write to disk *)
+      
       {
           ns          = "user";
           debug       = false;
@@ -114,7 +115,7 @@ module Nrepl =
       match cmd with
       | "usage"   -> pe vm_usage
       | "start"   -> (vm_start ~run:1 ())
-      | "connect" -> vm_connect ~host:"localhost" ~port:9000 ()
+      | "connect" -> vm_connect ~host:(List.nth arg 1) ~port:(int_of_string (List.nth arg 3)) ()
       | "stat"    -> eval_cmd (q "jark.vm") (q "stats")  ~run:1 ()
       | "uptime"  -> eval_cmd (q "jark.vm") (q "uptime") ~run:1 ()
       | "gc"      -> eval_cmd (q "jark.vm") (q "gc")     ~run:1 ()
@@ -147,7 +148,6 @@ module Nrepl =
       | "usage"   -> pe swank_usage
       | "start"   -> eval_exp "(jark.swank/start \"0.0.0.0\" 4005)" ~run:1 ()
       |  _        -> pe swank_usage
-
 
     let version = 
       "version 0.4"

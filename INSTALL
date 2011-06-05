@@ -10,10 +10,15 @@ camlp5
     $ cp -r lib/  /usr/lib/ocaml/camlp5
     $ cp main/*.cmxa /usr/lib/ocaml/camlp5/
 
-ledt  :  http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz and 
+ledt 
     $ wget -O - http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz 2> /dev/null | tar xzvf - && cd ledit-2.02.1
     $ make && make install && make ledit.cmxa
     $ cp -r ledit-2.0.2/ /usr/lib/ocaml/ledit
+
+extlib
+    $ wget http://ocaml-extlib.googlecode.com/files/extlib-1.5.1.tar.gz 2> /dev/null | tar xzvf - && cd extlib-1.5.1
+    $ make && make opt && make install
+
 
 Then run `make`
 

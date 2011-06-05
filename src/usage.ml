@@ -66,7 +66,7 @@ let package_usage =
 
 let usage =
   unlines ["usage: jark [-v|--version] [-h|--help]" ;
-            "            [-r|repl] [-e|--eval]" ;
+            "            [-r|repl] [-e|--eval] [-i|--install|install]" ;
             "            [-a|--host=<hostname>] [-p|--port=<port>] <module> <command> <args>" ;
             "";
             "The most commonly used jark modules are:" ;
