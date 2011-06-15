@@ -26,7 +26,7 @@ let ns_load file ?(run = 0) () =
     Nrepl.eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
   end
       
-    (* commands *)
+(* commands *)
       
 let cp cmd ?(arg = []) () =
   match cmd with

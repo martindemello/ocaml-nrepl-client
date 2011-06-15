@@ -13,11 +13,8 @@ module Nrepl =
   struct
     open Datatypes
 
-    (* nrepl seems to be appending a literal '\n' *)
-
     let format_value value =
-      String.strip ~chars:"\n" value;
-      strip_fake_newline value
+      Str.global_replace (Str.regexp "\\\\n$") " " value
 
     let nrepl_send env msg  =
       let res = NreplClient.send_msg env msg in
@@ -25,6 +22,7 @@ module Nrepl =
         printf "%s\n" (format_value (us res.err))
       else
         begin
+          (format_value (us res.out));
           if notnone res.out then printf "%s\n" (format_value (us res.out));
           if notnone res.value then printf "%s\n" (format_value (us res.value))
         end;
