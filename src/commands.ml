@@ -3,10 +3,11 @@ open ExtList
 open ExtString
 open Printf
 open Datatypes
+include Config
 
 let vm_start ?(run = 0) () =
   if run=1 then begin
-    Sys.command "java -cp \"/$HOME/.cljr/lib/*\" jark.vm 9000 &";
+    Sys.command("java -cp " ^ cp_boot ^ " jark.vm 9000 &");
     Unix.sleep 5
   end
       
@@ -79,8 +80,16 @@ let swank cmd ?(arg = [] ) () =
 let version = 
   "version 0.4"
     
-let install =
-  "Downloading clojure jar .."
+let install ?(run = 0) () =
+  if run=1 then begin
+    Sys.command("mkdir -p " ^ cljr_lib);
+    Sys.command("wget --user-agent jark " ^ url_clojure ^ " -O" ^ cljr_lib ^ "/clojure-1.2.1.jar");
+    Sys.command("wget --user-agent jark " ^ url_clojure_contrib ^ " -O"  ^ cljr_lib ^ "/clojure-contrib-1.2.0.jar");
+    Sys.command("wget --user-agent jark " ^ url_nrepl ^ " -O" ^ cljr_lib ^ "/tools.nrepl-0.0.5.jar");
+    Sys.command("wget --user-agent jark " ^ url_jark  ^ " -O" ^ cljr_lib ^ "/jark-0.4.jar");
+    pe "Installed components successfully"
+  end
+
 
 (* REPL *)
     

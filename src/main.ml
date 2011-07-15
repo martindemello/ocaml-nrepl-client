@@ -23,6 +23,6 @@ let _ =
   | "--version" :: [] -> pe version
   | "-v" :: []      -> pe version
   | "-e" :: xs      ->  Nrepl.eval_exp (List.first xs) ~run:1 ()
-  | "install" :: [] -> pe install
+  | "install" :: [] -> install ~run:1 ()
   |  _              -> pe usage; 
  
