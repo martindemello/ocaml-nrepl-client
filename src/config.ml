@@ -1,5 +1,6 @@
 (*pp $PP *)
 open Printf
+open Datatypes
 
 let user_preferences = Hashtbl.create 0
 
@@ -59,6 +60,27 @@ let get k () =
     raise e 
 
 let getc () =
-  let xs = cread (open_in "/home/icylisper/.jarkc") in
+  let config_file = (Sys.getenv "HOME") ^ "/.jarkc" in 
+  let xs = cread (open_in config_file) in
   (* List.iter (fun x -> Printf.printf "%d\n" x) xs *)
   xs
+
+
+let set_env ?(host="localhost") ?(port=9000) () =
+  set "host" host;
+  (* set "port" (string_of_int port); *)
+  {
+  ns          = "user";
+  debug       = false;
+  host        = host;
+  port        = 9000
+  }
+        
+let get_env = 
+  {
+  ns          = "user";
+  debug       = false;
+  host        = "localhost";
+  port        = 9000
+} 
+

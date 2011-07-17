@@ -49,24 +49,6 @@ module Nrepl =
     let eval_dispatch env ns fn =
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
 
-    let set_env ?(host="localhost") ?(port=9000) () =
-      (* set "host" host; *)
-      (* set "port" (string_of_int port); *)
-      {
-      ns          = "user";
-      debug       = false;
-      host        = host;
-      port        = 9000
-    }
-        
-    let get_env = 
-      {
-      ns          = "user";
-      debug       = false;
-      host        = "localhost";
-      port        = 9000
-    } 
-
     let eval_cmd ns fn ?(run = 0) () = 
       if run=1 then begin
         let env = get_env in
@@ -78,6 +60,5 @@ module Nrepl =
         let env = get_env in
         eval env exp
       end
-
  end
  

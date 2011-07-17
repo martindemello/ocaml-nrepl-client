@@ -46,3 +46,7 @@ let strip_fake_newline str =
     String.rchop (String.rchop str)
   else
     str
+
+let print_list xs =
+  List.iter (fun x -> printf "%s\n" x) xs;
+

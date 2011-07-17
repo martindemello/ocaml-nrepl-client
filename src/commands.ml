@@ -14,18 +14,18 @@ let vm_start ?(run = 0) () =
   end
       
 let vm_connect ?(host="localhost") ?(port=9000) () =
-  let env = (Nrepl.set_env ~host:host ~port:port ()) in
+  let env = (set_env ~host:host ~port:port ()) in
   Nrepl.eval env "(jark.vm/stats)"
     
 let cp_add path ?(run = 0) () =
   if run=1 then begin
-    let env = Nrepl.get_env in
+    let env = get_env in
     Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" path)
   end
       
 let ns_load file ?(run = 0) () =
   if run=1 then begin
-    let env = Nrepl.get_env in
+    let env = get_env in
     Nrepl.eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
   end
       
@@ -44,6 +44,7 @@ let vm cmd ?(arg = []) () =
   | "usage"   -> pe vm_usage
   | "start"   -> vm_start ~run:1 ()
   | "connect" -> begin 
+      print_list arg;
       vm_connect ~host:(List.nth arg 1) ~port:(String.to_int (List.nth arg 3)) ()
       end
   | "stat"    -> Nrepl.eval_cmd (q "jark.vm") (q "stats")  ~run:1 ()
@@ -91,4 +92,3 @@ let install ?(run = 0) () =
     ignore (Sys.command("wget --user-agent jark " ^ url_jark  ^ " -O" ^ cljr_lib ^ "/jark-0.4.jar"));
     pe "Installed components successfully"
   end
-
