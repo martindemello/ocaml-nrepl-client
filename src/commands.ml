@@ -6,6 +6,8 @@ open Datatypes
 include Config
 open File
 
+(* FIXME: This has to be a module *)
+
 let vm_start ?(run = 0) () =
   if run=1 then begin
     let c = "java -cp " ^ cp_boot ^ " jark.vm 9000 &" in
@@ -18,14 +20,22 @@ let vm_connect ?(host="localhost") ?(port=9000) () =
   let env = (set_env ~host:host ~port:port ()) in
   Nrepl.eval env "(jark.vm/stats)"
 
+let cp_add_file path ?(run = 0) () =
+  if run=1 then begin
+    let env = get_env in
+    printf "Adding classpath %s\n" path;
+    Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" path)
+  end
+
 let cp_add path ?(run = 0) () =
-  (* FIXME: path is a list, an item in path can be a directory *)
   if run=1 then begin
     let apath = (File.abspath path) in
+    let f = apath ^ "/" in
     if (File.exists apath) then begin
-      let env = get_env in
-      printf "Adding classpath %s\n" apath;
-      Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" apath)
+      if (File.isdir apath) then 
+        List.iter (fun x -> cp_add_file (f ^ x) ~run:1 ()) (File.list_of_dir apath)
+      else
+        cp_add_file apath ~run:1 ()
     end
     else begin
       printf "File not found %s\n" apath;
@@ -39,8 +49,8 @@ let ns_load file ?(run = 0) () =
     Nrepl.eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
   end
       
-(* commands *)
-      
+(* command dispatcher *)
+
 let cp cmd ?(arg = []) () =
   match cmd with
   | "usage"   -> pe cp_usage
