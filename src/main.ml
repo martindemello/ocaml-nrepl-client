@@ -12,6 +12,7 @@ open ExtString
    | "usage"   -> pe cp_usage
    | "help"    -> pe cp_usage
    | "list"    -> Jark.eval_cmd (q "jark.cp") (q "ls")
+   | "ls"      -> Jark.eval_cmd (q "jark.cp") (q "ls")
    | "add"     -> Jark.cp_add (List.nth arg 0)
    |  _        -> pe cp_usage
             

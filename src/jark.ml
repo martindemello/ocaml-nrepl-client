@@ -12,23 +12,17 @@ module Jark =
   struct
     open Datatypes
 
-    let format_value value =
-      Str.global_replace (Str.regexp "\\\\n$") " " value
-
-    let nilp value = 
-      (String.strip (format_value (us value))) = "nil"
-
     let nrepl_send env msg  =
       let res = Nrepl.send_msg env msg in
       if notnone res.err then
-        printf "%s\n" (format_value (us res.err))
+        printf "%s\n" (strip_fake_newline (us res.err))
       else
         begin
-          ignore (format_value (us res.out));
-          if notnone res.out then printf "%s\n" (format_value (us res.out));
+          ignore (strip_fake_newline (us res.out));
+          if notnone res.out then printf "%s\n" (strip_fake_newline (us res.out));
           if notnone res.value then begin
             if not (nilp res.value) then
-              printf "%s\n" (format_value (us res.value));
+              printf "%s\n" (strip_fake_newline (us res.value));
           end
         end;
         flush stdout

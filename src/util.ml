@@ -48,3 +48,10 @@ let strip_fake_newline str =
 
 let print_list xs =
   List.iter (fun x -> printf "%s\n" x) xs
+
+let strip_fake_newline value =
+  Str.global_replace (Str.regexp "\\\\n$") " " value
+
+let nilp value = 
+  (String.strip (strip_fake_newline (us value))) = "nil"
+
