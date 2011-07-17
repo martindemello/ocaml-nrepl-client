@@ -4,6 +4,7 @@ open ExtString
 open Printf
 open Datatypes
 include Config
+open Fs
 
 let vm_start ?(run = 0) () =
   if run=1 then begin
@@ -16,13 +17,16 @@ let vm_start ?(run = 0) () =
 let vm_connect ?(host="localhost") ?(port=9000) () =
   let env = (set_env ~host:host ~port:port ()) in
   Nrepl.eval env "(jark.vm/stats)"
-    
+
 let cp_add path ?(run = 0) () =
+  (* FIXME: path is a list, an item in path can be a directory *)
   if run=1 then begin
+    let apath = (Fs.abspath path) in
     let env = get_env in
-    Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" path)
+    printf "Adding classpath %s\n" apath;
+    Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" apath)
   end
-      
+
 let ns_load file ?(run = 0) () =
   if run=1 then begin
     let env = get_env in

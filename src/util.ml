@@ -47,4 +47,4 @@ let strip_fake_newline str =
     str
 
 let print_list xs =
-  List.iter (fun x -> printf "%s\n" x) xs;
+  List.iter (fun x -> printf "%s\n" x) xs
