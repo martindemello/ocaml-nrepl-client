@@ -1,9 +1,9 @@
 (*pp camlp4o *)
 
-open Unix;;
-open Str;;
+open Unix
+open Str
 
-let exists fn = try ignore (lstat fn); true with error -> false;;
+let exists filename = try ignore (lstat filename); true with error -> false;;
 
 let list_of_dir dirname =
   let dirh = opendir dirname in
@@ -44,3 +44,21 @@ let abspath name =
     end;
   end;;
 
+let getfirstline filename =
+  let fd = open_in filename in
+  let line = input_line fd in
+  close_in fd;
+  line
+
+let getlines filename =
+  let fd = open_in filename in
+  let retval = ref [] in
+  begin
+    try
+      while true do
+        retval := (input_line fd) :: !retval
+      done
+    with End_of_file -> ();
+  end;
+  close_in fd;
+  !retval

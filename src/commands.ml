@@ -4,7 +4,7 @@ open ExtString
 open Printf
 open Datatypes
 include Config
-open Fs
+open File
 
 let vm_start ?(run = 0) () =
   if run=1 then begin
@@ -21,10 +21,16 @@ let vm_connect ?(host="localhost") ?(port=9000) () =
 let cp_add path ?(run = 0) () =
   (* FIXME: path is a list, an item in path can be a directory *)
   if run=1 then begin
-    let apath = (Fs.abspath path) in
-    let env = get_env in
-    printf "Adding classpath %s\n" apath;
-    Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" apath)
+    let apath = (File.abspath path) in
+    if (File.exists apath) then begin
+      let env = get_env in
+      printf "Adding classpath %s\n" apath;
+      Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" apath)
+    end
+    else begin
+      printf "File not found %s\n" apath;
+      ()
+    end
   end
 
 let ns_load file ?(run = 0) () =

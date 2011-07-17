@@ -21,9 +21,9 @@ let unsome default = function
   | None -> default
   | Some v -> v
 
-let notnone x = x != None
-
 let us x = unsome "" x
+
+let notnone x = x != None
 
 let syscall cmd =
   let ic, oc = Unix.open_process cmd in
