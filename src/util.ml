@@ -7,7 +7,6 @@ open ExtString
 
 (* utility functions *)
 
-
 let split x y = Str.split (Str.regexp x) y
 
 let lines x = split "\n" x
@@ -49,4 +48,3 @@ let strip_fake_newline str =
 
 let print_list xs =
   List.iter (fun x -> printf "%s\n" x) xs;
-

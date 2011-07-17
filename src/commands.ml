@@ -44,7 +44,6 @@ let vm cmd ?(arg = []) () =
   | "usage"   -> pe vm_usage
   | "start"   -> vm_start ~run:1 ()
   | "connect" -> begin 
-      print_list arg;
       vm_connect ~host:(List.nth arg 1) ~port:(String.to_int (List.nth arg 3)) ()
       end
   | "stat"    -> Nrepl.eval_cmd (q "jark.vm") (q "stats")  ~run:1 ()

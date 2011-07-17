@@ -26,7 +26,11 @@ let cread config () =
     (line_stream_of_channel config);
   List.rev !xs
  
-let cljr_lib = (Sys.getenv "HOME") ^ "/.cljr/lib"
+let cljr_lib = 
+  if (Sys.os_type = "Win32") then
+    "c:\cljr\lib"
+  else
+    (Sys.getenv "HOME") ^ "/.cljr/lib"
 
 let url_clojure = "http://build.clojure.org/releases/org/clojure/clojure/1.2.1/clojure-1.2.1.jar"
 
