@@ -18,7 +18,7 @@ let _ =
   | "swank" :: []   -> pe swank_usage
   | "swank" :: xs   -> swank (List.first xs) ~arg:(List.tl xs) ()
   | "repo" :: []    -> pe repo_usage
-  | "repl" :: []    -> run_repl ~show:1 ()
+  (* | "repl" :: []    -> run_repl ~show:1 () *)
   | "version" :: [] -> pe version
   | "--version" :: [] -> pe version
   | "-v" :: []      -> pe version

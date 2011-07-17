@@ -22,7 +22,7 @@ module Nrepl =
         printf "%s\n" (format_value (us res.err))
       else
         begin
-          (format_value (us res.out));
+          ignore (format_value (us res.out));
           if notnone res.out then printf "%s\n" (format_value (us res.out));
           if notnone res.value then printf "%s\n" (format_value (us res.value))
         end;
