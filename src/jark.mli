@@ -1,26 +1,20 @@
 module Jark :
   sig
 
-    val vm_start: string -> unit
+    val eval_cmd : string -> string -> unit
 
-    val vm_connect: string -> int -> unit
+    val eval_exp : string -> unit
 
-    val cp_add: string -> unit
+    val eval : Datatypes.env -> string -> unit
 
-    val ns_load: string -> unit
+    val vm_start : string -> unit
 
-    val cp: string -> string list -> unit
+    val vm_connect : string -> int -> unit
 
-    val vm: string -> string list -> unit
+    val cp_add : string -> unit
 
-    val ns: string -> string list -> unit
+    val ns_load : string -> unit
 
-    val package: string -> string list -> unit
-
-    val swank: string -> string list -> unit
-
-    val version: string
-
-    val install: string -> unit
+    val install : string -> unit
 
    end

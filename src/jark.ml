@@ -12,6 +12,55 @@ module Jark =
   struct
     open Datatypes
 
+    let format_value value =
+      Str.global_replace (Str.regexp "\\\\n$") " " value
+
+    let nilp value = 
+      (String.strip (format_value (us value))) = "nil"
+
+    let nrepl_send env msg  =
+      let res = Nrepl.send_msg env msg in
+      if notnone res.err then
+        printf "%s\n" (format_value (us res.err))
+      else
+        begin
+          ignore (format_value (us res.out));
+          if notnone res.out then printf "%s\n" (format_value (us res.out));
+          if notnone res.value then begin
+            if not (nilp res.value) then
+              printf "%s\n" (format_value (us res.value));
+          end
+        end;
+        flush stdout
+
+    let node_id env = sprintf "%s:%d" env.host env.port
+
+    let repl_id env = (node_id env) ^ "-repl"
+
+    let make_eval_message env exp =
+      { mid = repl_id env; code = exp }
+
+    let make_dispatch_message env ns fn =
+      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s %s)" ns fn }
+
+    let clj_string env exp =
+      let s = sprintf "(do (in-ns '%s) %s)" env.ns exp in
+      Str.global_replace (Str.regexp "\"") "\\\"" s
+
+    let eval env code =
+      let expr = clj_string env code in
+      nrepl_send env (make_eval_message env expr)
+
+    let eval_cmd ns fn = 
+      let env = get_env in
+      nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
+          
+    let eval_exp exp = 
+      let env = get_env in
+      eval env exp
+
+    (* commands *)
+
     let vm_start port =
       let c = "java -cp " ^ cp_boot ^ " jark.vm " ^ port ^ " &" in
       ignore (Sys.command c);
@@ -20,12 +69,12 @@ module Jark =
         
     let vm_connect host port =
       let env = (set_env ~host:host ~port:port ()) in
-      Nrepl.eval env "(jark.vm/stats)"
+      eval env "(jark.vm/stats)"
         
     let cp_add_file path =
       let env = get_env in
       printf "Adding classpath %s\n" path;
-      Nrepl.eval env (sprintf "(jark.cp/add \"%s\")" path)
+      eval env (sprintf "(jark.cp/add \"%s\")" path)
 
     let cp_add path =
       let apath = (File.abspath path) in
@@ -44,59 +93,7 @@ module Jark =
 
     let ns_load file =
       let env = get_env in
-      Nrepl.eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
-        
-(* command dispatcher *)
-
-    let cp cmd arg =
-      match cmd with
-      | "usage"   -> pe cp_usage
-      | "help"    -> pe cp_usage
-      | "list"    -> Nrepl.eval_cmd (q "jark.cp") (q "ls")
-      | "add"     -> cp_add (List.nth arg 0)
-      |  _        -> pe cp_usage
-            
-    let vm cmd arg =
-      match cmd with
-      | "usage"   -> pe vm_usage
-      | "start"   -> vm_start (List.nth arg 1)
-      | "connect" -> begin 
-          vm_connect (List.nth arg 1) (String.to_int (List.nth arg 3))
-      end
-      | "stat"    -> Nrepl.eval_cmd (q "jark.vm") (q "stats")
-      | "uptime"  -> Nrepl.eval_cmd (q "jark.vm") (q "uptime")
-      | "gc"      -> Nrepl.eval_cmd (q "jark.vm") (q "gc")    
-      | "threads" -> Nrepl.eval_cmd (q "jark.vm") (q "threads")
-      |  _        -> pe vm_usage 
-            
-    let ns cmd arg =
-      match cmd with
-      | "usage"   -> pe ns_usage
-      | "list"    -> Nrepl.eval_cmd (q "jark.ns") (q "list")
-      | "find"    -> Nrepl.eval_cmd (q "jark.ns") (q "list")
-      | "load"    -> ns_load (List.first arg)
-      | "run"     -> Nrepl.eval_cmd (q "jark.ns") (q "list")
-      | "repl"    -> Nrepl.eval_cmd (q "jark.ns") (q "list")
-      |  _        -> pe ns_usage
-            
-    let package cmd arg =
-      match cmd with
-      | "usage"     -> pe package_usage
-      | "install"   -> pe "Install package"
-      | "versions"  -> pe "package versions"
-      | "deps"      -> pe "dependencies"
-      | "installed" -> pe "install a package"
-      | "latest"    -> pe "Latest"
-      |  _          -> pe package_usage
-            
-    let swank cmd arg =
-      match cmd with
-      | "usage"   -> pe swank_usage
-      | "start"   -> Nrepl.eval_exp "(jark.swank/start \"0.0.0.0\" 4005)"
-      |  _        -> pe swank_usage
-            
-    let version = 
-      "version 0.4"
+      eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
         
     let install component =
       ignore (Sys.command("mkdir -p " ^ cljr_lib));
