@@ -53,13 +53,14 @@ module Jark =
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
 
     let make_dispatch_message_args env ns fn args =
-      let f = (sprintf "(jark.ns/dispatch %s %s %s)" ns fn args) in
+      let s = String.concat " " args in
+      let f = (sprintf "(jark.ns/dispatch %s %s %s)" ns fn s) in
       printf "%s\n" f;
       { mid = node_id env; code = f }
 
     let eval_cmd_args ns fn args = 
       let env = get_env in
-      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) (stringify args))
+      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) args)
           
     (* commands *)
 
@@ -72,25 +73,28 @@ module Jark =
     let vm_connect host port =
       eval "(jark.vm/stats)"
         
-    let cp_add_file path =
+    let cp_add_eval path =
       printf "Adding classpath %s\n" path;
-      (* eval (sprintf "(jark.cp/add \"%s\")" path) *)
-      eval_cmd_args "jark.cp" "add" path
+      eval_cmd_args (q "jark.cp") (q "add") [(stringify (q path))]
 
-    let cp_add path =
+    let cp_add_file path =
       let apath = (File.abspath path) in
       let f = apath ^ "/" in
       if (File.exists apath) then begin
         if (File.isdir apath) then 
-          List.iter (fun x -> cp_add_file (f ^ x)) (File.list_of_dir apath)
+          List.iter (fun x -> cp_add_eval (f ^ x)) (File.list_of_dir apath)
         else
-          cp_add_file(apath);
+          cp_add_eval(apath);
         ()
       end
       else begin
         printf "File not found %s\n" apath;
         ()
       end
+
+     let cp_add path_list =
+       List.iter (fun x -> cp_add_file x) path_list;
+       ()
 
     let ns_load file =
       eval (sprintf "(jark.ns/load-clj \"%s\")" file)

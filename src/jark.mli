@@ -9,7 +9,7 @@ module Jark :
 
     val vm_connect : string -> int -> unit
 
-    val cp_add : string -> unit
+    val cp_add : string list -> unit
 
     val ns_load : string -> unit
 
