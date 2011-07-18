@@ -10,10 +10,10 @@ cp main/*.cmxa /usr/lib/ocaml/camlp5/
 
 cd $CUR
 
-
-wget -O - http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.tgz 2> /dev/null | tar xzvf - && cd ledit-2.02.1
+wget -O - http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.1.tgz 2> /dev/null | tar xzvf - && cd ledit-2.02.1
 make && make install && make ledit.cmxa
-cp -r ledit-2.0.2/ /usr/lib/ocaml/ledit
+rm -rf /usr/lib/ocaml/ledit
+cp -r ../ledit-2.02.1/ /usr/lib/ocaml/ledit
 
 cd $CUR
 
