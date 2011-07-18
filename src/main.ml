@@ -52,7 +52,7 @@ let package cmd arg =
 let swank cmd arg =
   match cmd with
   | "usage"   -> pe swank_usage
-  | "start"   -> Jark.eval_exp "(jark.swank/start \"0.0.0.0\" 4005)"
+  | "start"   -> Jark.eval "(jark.swank/start \"0.0.0.0\" 4005)"
   |  _        -> pe swank_usage
         
 let version = 
@@ -76,7 +76,7 @@ let _ =
   | "--version" :: [] -> pe version
   | "-v" :: []      -> pe version
   | "install" :: [] -> Jark.install "jark"
-  | "-e" :: xs      -> Jark.eval_exp (List.first xs)
+  | "-e" :: xs      -> Jark.eval (List.first xs)
   |  _   :: xs      -> pe "wick"
   |  _              -> pe usage
  

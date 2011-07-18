@@ -34,25 +34,24 @@ module Jark =
     let make_eval_message env exp =
       { mid = repl_id env; code = exp }
 
-    let make_dispatch_message env ns fn =
-      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s %s)" ns fn }
-
     let clj_string env exp =
       let s = sprintf "(do (in-ns '%s) %s)" env.ns exp in
       Str.global_replace (Str.regexp "\"") "\\\"" s
 
-    let eval env code =
+    let eval code = 
+      let env = get_env in
       let expr = clj_string env code in
       nrepl_send env (make_eval_message env expr)
+
+    (* dispatcher Namespace Function Args *)
+
+    let make_dispatch_message env ns fn =
+      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s %s)" ns fn }
 
     let eval_cmd ns fn = 
       let env = get_env in
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
           
-    let eval_exp exp = 
-      let env = get_env in
-      eval env exp
-
     (* commands *)
 
     let vm_start port =
@@ -62,13 +61,11 @@ module Jark =
       Unix.sleep 5
         
     let vm_connect host port =
-      let env = (set_env ~host:host ~port:port ()) in
-      eval env "(jark.vm/stats)"
+      eval "(jark.vm/stats)"
         
     let cp_add_file path =
-      let env = get_env in
       printf "Adding classpath %s\n" path;
-      eval env (sprintf "(jark.cp/add \"%s\")" path)
+      eval (sprintf "(jark.cp/add \"%s\")" path)
 
     let cp_add path =
       let apath = (File.abspath path) in
@@ -86,8 +83,7 @@ module Jark =
       end
 
     let ns_load file =
-      let env = get_env in
-      eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
+      eval (sprintf "(jark.ns/load-clj \"%s\")" file)
       
     let wget_cmd ul =
       let url = String.concat " " ul in

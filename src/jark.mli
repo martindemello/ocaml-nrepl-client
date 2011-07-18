@@ -3,9 +3,7 @@ module Jark :
 
     val eval_cmd : string -> string -> unit
 
-    val eval_exp : string -> unit
-
-    val eval : Datatypes.env -> string -> unit
+    val eval : string -> unit
 
     val vm_start : string -> unit
 
