@@ -8,3 +8,4 @@
 - ns commands
 - package commands
 - git hash in version
+- repl dispatchers

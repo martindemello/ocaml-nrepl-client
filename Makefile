@@ -15,6 +15,10 @@ all:: native
 
 native :
 	$(OCAMLBUILD) -libs $(LIBS) main.native
+	cp _build/src/main.native bin/jark-`uname -m`
+
+upx :
+	$(OCAMLBUILD) -libs $(LIBS) main.native
 	cp _build/src/main.native bin/jark-`uname -m`-un
 	rm bin/jark-`uname -m`
 	upx -9 -o bin/jark-`uname -m` bin/jark-`uname -m`-un

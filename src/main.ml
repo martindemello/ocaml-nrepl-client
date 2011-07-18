@@ -6,6 +6,7 @@ open OptParse
 open Jark
 open ExtList
 open ExtString
+open Repl
 
  let cp cmd arg =
    match cmd with
@@ -71,7 +72,7 @@ let _ =
   | "swank" :: []   -> pe swank_usage
   | "swank" :: xs   -> swank (List.first xs) (List.tl xs)
   | "repo" :: []    -> pe repo_usage
-  (* | "repl" :: []    -> run_repl ~show:1 () *)
+  | "repl" :: []    -> Repl.run "user"
   | "version" :: [] -> pe version
   | "--version" :: [] -> pe version
   | "-v" :: []      -> pe version

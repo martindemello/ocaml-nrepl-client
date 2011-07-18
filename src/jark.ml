@@ -53,11 +53,13 @@ module Jark =
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
 
     let make_dispatch_message_args env ns fn args =
-      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s %s %s)" ns fn args }
+      let f = (sprintf "(jark.ns/dispatch %s %s %s)" ns fn args) in
+      printf "%s\n" f;
+      { mid = node_id env; code = f }
 
     let eval_cmd_args ns fn args = 
       let env = get_env in
-      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) args)
+      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) (stringify args))
           
     (* commands *)
 
