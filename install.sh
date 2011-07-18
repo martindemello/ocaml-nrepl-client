@@ -17,8 +17,10 @@ cp -r ../ledit-2.02.1/ /usr/lib/ocaml/ledit
 
 cd $CUR
 
-wget http://ocaml-extlib.googlecode.com/files/extlib-1.5.1.tar.gz 2> /dev/null | tar xzvf - && cd extlib-1.5.1
+wget -O - http://ocaml-extlib.googlecode.com/files/extlib-1.5.1.tar.gz 2> /dev/null | tar xzvf - && cd extlib-1.5.1
 make && make opt && make install
 
 cd $CUR
+
+make 
 
