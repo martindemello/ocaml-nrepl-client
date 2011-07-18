@@ -1,5 +1,3 @@
-(*pp camlp4o *)
-
 open Unix
 open Str
 

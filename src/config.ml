@@ -25,12 +25,24 @@ let cread config () =
            | _ -> failwith s)
     (line_stream_of_channel config);
   List.rev !xs
+
+let cljr = 
+  if (Sys.os_type = "Win32") then
+    "c:\cljr"
+  else
+    (Sys.getenv "HOME") ^ "/.cljr"
  
 let cljr_lib = 
   if (Sys.os_type = "Win32") then
     "c:\cljr\lib"
   else
     (Sys.getenv "HOME") ^ "/.cljr/lib"
+
+let wget = 
+  if (Sys.os_type = "Win32") then
+    "c:\wget.exe --user-agent jark"
+  else
+    "wget --user-agent jark"
 
 let url_clojure = "http://build.clojure.org/releases/org/clojure/clojure/1.2.1/clojure-1.2.1.jar"
 
@@ -40,10 +52,18 @@ let url_nrepl =  "http://repo1.maven.org/maven2/org/clojure/tools.nrepl/0.0.5/to
 
 let url_jark = "http://clojars.org/repo/jark/jark/0.4/jark-0.4.jar"
 
-let cp_boot  = cljr_lib ^ "/clojure-1.2.1.jar" ^ ":" ^
-  cljr_lib ^ "/clojure-contrib-1.2.0.jar" ^ ":" ^
-  cljr_lib ^ "/tools.nrepl-0.0.5.jar" ^ ":" ^
-  cljr_lib ^ "/jark-0.4.jar"
+let jar_clojure = cljr_lib ^ "/clojure-1.2.1.jar"
+
+let jar_contrib = cljr_lib ^ "/clojure-contrib-1.2.0.jar"
+
+let jar_nrepl   = cljr_lib ^ "/tools.nrepl-0.0.5.jar"
+
+let jar_jark    = cljr_lib ^ "/jark-0.4.jar"
+
+let cp_boot  = String.concat ":" [ jar_clojure;
+                                   jar_contrib;
+                                   jar_nrepl;
+                                   jar_jark ]
 
 let set k v () =
   ignore (Sys.command("mkdir -p " ^ (Sys.getenv "HOME") ^ "/.config/jark"));

@@ -1,1 +1,8 @@
 - Handle "\n" in strings properly
+- cp multiple add
+- cp add interms of eval_cmd
+- namespace dispatcher
+- repl module (repl.mli)
+- configuration file
+- Handle connection error in main
+- 

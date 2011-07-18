@@ -88,13 +88,18 @@ module Jark =
     let ns_load file =
       let env = get_env in
       eval env (sprintf "(jark.ns/load-clj \"%s\")" file)
-        
+      
+    let wget_cmd ul =
+      let url = String.concat " " ul in
+      ignore (Sys.command(url))
+  
     let install component =
-      ignore (Sys.command("mkdir -p " ^ cljr_lib));
-      ignore (Sys.command("wget --user-agent jark " ^ url_clojure ^ " -O" ^ cljr_lib ^ "/clojure-1.2.1.jar"));
-      ignore (Sys.command("wget --user-agent jark " ^ url_clojure_contrib ^ " -O"  ^ cljr_lib ^ "/clojure-contrib-1.2.0.jar"));
-      ignore (Sys.command("wget --user-agent jark " ^ url_nrepl ^ " -O" ^ cljr_lib ^ "/tools.nrepl-0.0.5.jar"));
-      ignore (Sys.command("wget --user-agent jark " ^ url_jark  ^ " -O" ^ cljr_lib ^ "/jark-0.4.jar"));
+      (try Unix.mkdir cljr 0o740 with Unix.Unix_error(Unix.EEXIST,_,_) -> ());
+      (try Unix.mkdir cljr_lib 0o740 with Unix.Unix_error(Unix.EEXIST,_,_) -> ());
+      wget_cmd [ wget; url_clojure; "-O"; jar_clojure];
+      wget_cmd [ wget; url_clojure_contrib; "-O"; jar_contrib];
+      wget_cmd [ wget; url_nrepl; "-O"; jar_nrepl];
+      wget_cmd [ wget; url_jark; "-O";  jar_jark];
       pe "Installed components successfully";
 
 end
