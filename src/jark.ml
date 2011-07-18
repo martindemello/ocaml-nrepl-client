@@ -51,21 +51,29 @@ module Jark =
     let eval_cmd ns fn = 
       let env = get_env in
       nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
+
+    let make_dispatch_message_args env ns fn args =
+      { mid = node_id env; code = sprintf "(jark.ns/dispatch %s %s %s)" ns fn args }
+
+    let eval_cmd_args ns fn args = 
+      let env = get_env in
+      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) (stringify args))
           
     (* commands *)
 
     let vm_start port =
-      let c = "java -cp " ^ cp_boot ^ " jark.vm " ^ port ^ " &" in
+      let c = String.concat " " ["java -cp"; cp_boot; "jark.vm"; port; "&"] in
       ignore (Sys.command c);
       getc;
-      Unix.sleep 5
+      Unix.sleep 10
         
     let vm_connect host port =
       eval "(jark.vm/stats)"
         
     let cp_add_file path =
       printf "Adding classpath %s\n" path;
-      eval (sprintf "(jark.cp/add \"%s\")" path)
+      (* eval (sprintf "(jark.cp/add \"%s\")" path) *)
+      eval_cmd_args "jark.cp" "add" path
 
     let cp_add path =
       let apath = (File.abspath path) in
