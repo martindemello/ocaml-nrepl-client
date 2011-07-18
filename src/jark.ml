@@ -57,7 +57,7 @@ module Jark =
 
     let eval_cmd_args ns fn args = 
       let env = get_env in
-      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) (stringify args))
+      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) args)
           
     (* commands *)
 

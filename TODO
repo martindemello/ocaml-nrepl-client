@@ -7,4 +7,4 @@
 - Handle connection error in main
 - ns commands
 - package commands
-- 
+- git hash in version
