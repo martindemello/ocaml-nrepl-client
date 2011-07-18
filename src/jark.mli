@@ -15,4 +15,5 @@ module Jark :
 
     val install : string -> unit
 
+    val eval_cmd_args : string -> string -> string list -> unit
    end

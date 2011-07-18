@@ -60,7 +60,7 @@ module Jark =
 
     let eval_cmd_args ns fn args = 
       let env = get_env in
-      nrepl_send env (make_dispatch_message_args env (stringify ns) (stringify fn) args)
+      nrepl_send env (make_dispatch_message_args env (stringify (q ns)) (stringify fn) args)
           
     (* commands *)
 
@@ -75,7 +75,7 @@ module Jark =
         
     let cp_add_eval path =
       printf "Adding classpath %s\n" path;
-      eval_cmd_args (q "jark.cp") (q "add") [(stringify (q path))]
+      eval_cmd_args "jark.cp" "add" [(stringify (q path))]
 
     let cp_add_file path =
       let apath = (File.abspath path) in

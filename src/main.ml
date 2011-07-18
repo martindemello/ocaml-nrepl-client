@@ -78,6 +78,6 @@ let _ =
   | "-v" :: []      -> pe version
   | "install" :: [] -> Jark.install "jark"
   | "-e" :: xs      -> Jark.eval (List.first xs)
-  |  _   :: xs      -> pe "wick"
+  |  _   :: xs      -> Jark.eval_cmd_args (List.nth xs 0) (List.nth xs 1) (List.drop 1 xs)
   |  _              -> pe usage
  

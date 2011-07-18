@@ -9,3 +9,4 @@
 - package commands
 - git hash in version
 - repl dispatchers
+- ns load file (fix relative paths)
