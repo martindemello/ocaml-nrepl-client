@@ -15,14 +15,14 @@ all:: native
 
 native :
 	$(OCAMLBUILD) -libs $(LIBS) main.native
-	cp _build/src/main.native bin/jark-`uname -m`
+	cp _build/src/main.native build/jark-`uname -m`
 
 upx :
 	$(OCAMLBUILD) -libs $(LIBS) main.native
-	cp _build/src/main.native bin/jark-`uname -m`-un
-	rm bin/jark-`uname -m`
-	upx -9 -o bin/jark-`uname -m` bin/jark-`uname -m`-un
-	rm -f bin/jark-`uname -m`-un
+	cp _build/src/main.native build/jark-`uname -m`-un
+	rm build/jark-`uname -m`
+	upx -9 -o build/jark-`uname -m` build/jark-`uname -m`-un
+	rm -f build/jark-`uname -m`-un
 
 byte :
 	$(OCAMLBUILD) -libs $(LIBS) main.byte
@@ -43,7 +43,7 @@ ocamldebug :
 
 exe :
 	$(OCAMLBUILD) -libs $(WIN_LIBS) -ocamlc i486-mingw32-ocamlc -ocamlopt i486-mingw32-ocamlopt  main.native
-	cp _build/src/main.native bin/jark.exe
+	cp _build/src/main.native build/jark.exe
 
 clean::
 	rm -f *.cm[iox] *~ .*~ src/*~ #*#
