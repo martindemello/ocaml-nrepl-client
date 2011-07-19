@@ -1,4 +1,8 @@
 
+VERSION = 0.4
+
+BIN_NAME = jark-$(VERSION)-`uname -m`
+
 OLIB = /usr/lib/ocaml
 WLIB = /usr/lib/i486-mingw32-ocaml
 
@@ -15,14 +19,14 @@ all:: native
 
 native :
 	$(OCAMLBUILD) -libs $(LIBS) main.native
-	cp _build/src/main.native build/jark-`uname -m`
+	cp _build/src/main.native build/$(BIN_NAME)
 
 upx :
 	$(OCAMLBUILD) -libs $(LIBS) main.native
-	cp _build/src/main.native build/jark-`uname -m`-un
-	rm build/jark-`uname -m`
-	upx -9 -o build/jark-`uname -m` build/jark-`uname -m`-un
-	rm -f build/jark-`uname -m`-un
+	cp _build/src/main.native build/$(BIN_NAME)-un
+	rm build/$(BIN_NAME)
+	upx -9 -o build/$(BIN_NAME) build/$(BIN_NAME)-un
+	rm -f build/$(BIN_NAME)-un
 
 byte :
 	$(OCAMLBUILD) -libs $(LIBS) main.byte
@@ -53,3 +57,27 @@ clean::
 	rm -f jark*.tar.{gz,bz2}
 	rm -rf jark
 	ocamlbuild -clean
+
+upload:
+	cd build && upload.rb jark-$(VERSION)-x86_64 icylisper/jark-client
+	cd build && upload.rb jark-$(VERSION).exe icylisper/jark-client	
+	cd build && upload.rb jark-$(VERSION)-i686 icylisper/jark-client		
+	cd build && upload.rb jark-$(VERSION)-x86_64-macosx  icylisper/jark-client		
+
+gh-x86:
+	cd build && upload.rb jark-$(VERSION)-x86_64 icylisper/jark-client
+
+deps:
+	wget -O - http://pauillac.inria.fr/~ddr/camlp5/distrib/src/camlp5-6.02.3.tgz 2> /dev/null | tar xzvf - 
+	cd camlp5-6.02.3 && ./configure && make world.opt
+	rm -rf /usr/lib/ocaml/camlp5
+	cp -r lib/  /usr/lib/ocaml/camlp5
+	rm -rf camlp5-6.02.3
+	wget -O - http://cristal.inria.fr/~ddr/ledit/distrib/src/ledit-2.02.1.tgz 2> /dev/null | tar xzvf - 
+	cd ledit-2.02.1 && make && make install && make ledit.cmxa
+	rm -rf /usr/lib/ocaml/ledit
+	cp -r ledit-2.02.1/ /usr/lib/ocaml/ledit
+	rm -rf ledit-2.02.1
+	wget -O - http://ocaml-extlib.googlecode.com/files/extlib-1.5.1.tar.gz 2> /dev/null | tar xzvf - 
+	cd extlib-1.5.1 && make && make opt && make install
+	rm -rf extlib-1.5.1
