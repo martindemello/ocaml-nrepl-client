@@ -12,8 +12,8 @@ open Repl
    match cmd with
    | "usage"   -> pe cp_usage
    | "help"    -> pe cp_usage
-   | "list"    -> Jark.eval_cmd (q "jark.cp") (q "ls")
-   | "ls"      -> Jark.eval_cmd (q "jark.cp") (q "ls")
+   | "list"    -> Jark.eval_cmd "jark.cp" "ls"
+   | "ls"      -> Jark.eval_cmd "jark.cp" "ls"
    | "add"     -> Jark.cp_add arg
    |  _        -> pe cp_usage
             
@@ -24,20 +24,20 @@ let vm cmd arg =
   | "connect" -> begin 
       Jark.vm_connect (List.nth arg 1) (String.to_int (List.nth arg 3))
   end
-  | "stat"    -> Jark.eval_cmd (q "jark.vm") (q "stats")
-  | "uptime"  -> Jark.eval_cmd (q "jark.vm") (q "uptime")
-  | "gc"      -> Jark.eval_cmd (q "jark.vm") (q "gc")    
-  | "threads" -> Jark.eval_cmd (q "jark.vm") (q "threads")
+  | "stat"    -> Jark.eval_cmd "jark.vm" "stats"
+  | "uptime"  -> Jark.eval_cmd "jark.vm" "uptime"
+  | "gc"      -> Jark.eval_cmd "jark.vm" "gc"
+  | "threads" -> Jark.eval_cmd "jark.vm" "threads"
   |  _        -> pe vm_usage 
             
 let ns cmd arg =
   match cmd with
   | "usage"   -> pe ns_usage
-  | "list"    -> Jark.eval_cmd (q "jark.ns") (q "list")
-  | "find"    -> Jark.eval_cmd (q "jark.ns") (q "list")
+  | "list"    -> Jark.eval_cmd "jark.ns" "list"
+  | "find"    -> Jark.eval_cmd "jark.ns" "list"
   | "load"    -> Jark.ns_load (List.first arg)
-  | "run"     -> Jark.eval_cmd (q "jark.ns") (q "list")
-  | "repl"    -> Jark.eval_cmd (q "jark.ns") (q "list")
+  | "run"     -> Jark.eval_cmd "jark.ns" "list"
+  | "repl"    -> Jark.eval_cmd "jark.ns" "list"
   |  _        -> pe ns_usage
             
 let package cmd arg =

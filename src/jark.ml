@@ -50,7 +50,7 @@ module Jark =
 
     let eval_cmd ns fn = 
       let env = get_env in
-      nrepl_send env (make_dispatch_message env (stringify ns) (stringify fn))
+      nrepl_send env (make_dispatch_message env (qq ns) (qq fn))
 
     let make_dispatch_message_args env ns fn args =
       let s = String.concat " " args in
@@ -59,8 +59,9 @@ module Jark =
       { mid = node_id env; code = f }
 
     let eval_cmd_args ns fn args = 
+      List.iter (fun x -> printf "%s\n" x) args;
       let env = get_env in
-      nrepl_send env (make_dispatch_message_args env (stringify (q ns)) (stringify fn) args)
+      nrepl_send env (make_dispatch_message_args env (qq ns) (qq fn) args)
           
     (* commands *)
 

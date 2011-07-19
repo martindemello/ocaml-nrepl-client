@@ -39,6 +39,8 @@ let syscall cmd =
 let pe s = print_endline s
 
 let stringify s = Str.global_replace (Str.regexp "\"") "\\\"" s
+
+let qq s = stringify (q s)
         
 let strip_fake_newline str =
   if String.ends_with str "\\n" then
